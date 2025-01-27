@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
@@ -26,7 +26,8 @@ export default function GetStarted() {
   const generateAnswers = (correct: string) => {
     const answers = [correct];
     while (answers.length < 4) {
-      const randomLetter = marathiAlphabet[Math.floor(Math.random() * marathiAlphabet.length)];
+      const randomLetter =
+        marathiAlphabet[Math.floor(Math.random() * marathiAlphabet.length)];
       if (!answers.includes(randomLetter.latin)) {
         answers.push(randomLetter.latin);
       }
@@ -40,7 +41,10 @@ export default function GetStarted() {
       ...prev,
       score: isCorrect ? prev.score + 1 : prev.score,
       mistakes: isCorrect ? prev.mistakes : prev.mistakes + 1,
-      history: [...prev.history, { letter: prev.letters[prev.currentIndex].marathi, correct: isCorrect }],
+      history: [
+        ...prev.history,
+        { letter: prev.letters[prev.currentIndex].marathi, correct: isCorrect },
+      ],
       currentIndex: prev.currentIndex + 1,
     }));
 
@@ -57,7 +61,9 @@ export default function GetStarted() {
           <div className="space-y-4 mb-8">
             <p>Correct Answers: {exercise.score}</p>
             <p>Mistakes: {exercise.mistakes}</p>
-            <p>Accuracy: {((exercise.score / exercise.size) * 100).toFixed(1)}%</p>
+            <p>
+              Accuracy: {((exercise.score / exercise.size) * 100).toFixed(1)}%
+            </p>
           </div>
           <div className="space-y-4">
             <Link href="/login">
@@ -97,11 +103,15 @@ export default function GetStarted() {
             initial={{ x: 300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             <Card className="p-12 mb-8 text-center transform-gpu hover:scale-105 transition-transform">
-              <h2 className="text-6xl mb-4 font-bold">{currentLetter.marathi}</h2>
-              <p className="text-sm text-muted-foreground">Choose the correct Latin representation</p>
+              <h2 className="text-6xl mb-4 font-bold">
+                {currentLetter.marathi}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Choose the correct Latin representation
+              </p>
             </Card>
           </motion.div>
         </AnimatePresence>
@@ -120,7 +130,9 @@ export default function GetStarted() {
         </div>
 
         <div className="mt-8 flex justify-between text-sm text-muted-foreground">
-          <span>Question {exercise.currentIndex + 1} of {exercise.size}</span>
+          <span>
+            Question {exercise.currentIndex + 1} of {exercise.size}
+          </span>
           <span>Score: {exercise.score}</span>
         </div>
       </div>

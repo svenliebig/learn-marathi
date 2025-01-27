@@ -3,7 +3,10 @@ import { ExerciseState, UserProgress } from '@/lib/types';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { db } from '@/lib/database';
 
-export function useExercise(mode: 'marathi-to-latin' | 'latin-to-marathi', size: 8 | 16) {
+export function useExercise(
+  mode: 'marathi-to-latin' | 'latin-to-marathi',
+  size: 8 | 16
+) {
   const [state, setState] = useState<ExerciseState>({
     mode,
     size,
@@ -38,14 +41,19 @@ export function useExercise(mode: 'marathi-to-latin' | 'latin-to-marathi', size:
     if (!exerciseProgress || exerciseProgress.completedLetters.length < 4) {
       return marathiAlphabet.slice(0, 8);
     }
-    
-    const masteredLetters = marathiAlphabet.filter(l => 
-      exerciseProgress.completedLetters.includes(mode === 'marathi-to-latin' ? l.marathi : l.latin)
+
+    const masteredLetters = marathiAlphabet.filter(l =>
+      exerciseProgress.completedLetters.includes(
+        mode === 'marathi-to-latin' ? l.marathi : l.latin
+      )
     );
-    const newLetters = marathiAlphabet.filter(l => 
-      !exerciseProgress.completedLetters.includes(mode === 'marathi-to-latin' ? l.marathi : l.latin)
+    const newLetters = marathiAlphabet.filter(
+      l =>
+        !exerciseProgress.completedLetters.includes(
+          mode === 'marathi-to-latin' ? l.marathi : l.latin
+        )
     );
-    
+
     return [...masteredLetters, ...newLetters];
   };
 

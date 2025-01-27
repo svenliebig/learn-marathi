@@ -1,14 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
 import { db } from '@/lib/database';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Login() {
   const router = useRouter();
@@ -17,14 +16,15 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {    
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
       const user = await db.getUser(email);
-      if (user && user.password === password) { // In production, use proper password hashing
+      if (user && user.password === password) {
+        // In production, use proper password hashing
         router.push('/dashboard');
       } else {
         setError('Invalid email or password');
@@ -41,7 +41,9 @@ export default function Login() {
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground">Continue your Marathi learning journey</p>
+          <p className="text-muted-foreground">
+            Continue your Marathi learning journey
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -52,7 +54,7 @@ export default function Login() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               required
             />
           </div>
@@ -63,14 +65,12 @@ export default function Login() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               required
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
@@ -79,7 +79,7 @@ export default function Login() {
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-primary hover:underline">
               Sign up
             </Link>

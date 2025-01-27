@@ -1,10 +1,17 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Trophy, ArrowRight, Star, Clock, Target } from 'lucide-react';
+import {
+  BookOpen,
+  Trophy,
+  ArrowRight,
+  Star,
+  Clock,
+  Target,
+} from 'lucide-react';
 import Link from 'next/link';
 import { UserProgress } from '@/lib/types';
 import { db } from '@/lib/database';
@@ -20,7 +27,7 @@ export default function Dashboard() {
         // In production, get the actual user ID from the session
         const userProgress = await db.getUserProgress('demo-user');
         setProgress(userProgress);
-        
+
         // Calculate streak
         const today = new Date().toISOString().split('T')[0];
         if (userProgress.lastActivity === today) {
@@ -29,7 +36,10 @@ export default function Dashboard() {
           const lastDate = new Date(userProgress.lastActivity);
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
-          if (lastDate.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
+          if (
+            lastDate.toISOString().split('T')[0] ===
+            yesterday.toISOString().split('T')[0]
+          ) {
             setStreakDays(userProgress.streakDays || 0);
           } else {
             setStreakDays(0);
@@ -58,7 +68,10 @@ export default function Dashboard() {
     const exercises = Object.values(progress.exercises);
     if (exercises.length === 0) return 0;
 
-    const totalLetters = exercises.reduce((acc, ex) => acc + ex.completedLetters.length, 0);
+    const totalLetters = exercises.reduce(
+      (acc, ex) => acc + ex.completedLetters.length,
+      0
+    );
     const targetLetters = exercises.length * 16; // Assuming 16 letters per exercise
     return Math.round((totalLetters / targetLetters) * 100);
   };
@@ -126,7 +139,10 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-semibold">Mastery Level</h3>
                 <p className="text-2xl font-bold">
-                  {getMasteryLevel(progress?.exercises?.['marathi-to-latin']?.completedLetters.length || 0)}
+                  {getMasteryLevel(
+                    progress?.exercises?.['marathi-to-latin']?.completedLetters
+                      .length || 0
+                  )}
                 </p>
               </div>
             </div>
@@ -149,7 +165,9 @@ export default function Dashboard() {
               <div>
                 <BookOpen className="w-8 h-8 text-primary mb-2" />
                 <h3 className="text-lg font-semibold">Marathi to Latin</h3>
-                <p className="text-sm text-muted-foreground">Practice recognizing Marathi letters</p>
+                <p className="text-sm text-muted-foreground">
+                  Practice recognizing Marathi letters
+                </p>
               </div>
               <Link href="/learning?mode=marathi-to-latin">
                 <Button variant="outline" size="sm">
@@ -157,12 +175,17 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
-            <Progress 
-              value={progress?.exercises?.['marathi-to-latin']?.completedLetters.length ?? 0} 
-              max={16} 
+            <Progress
+              value={
+                progress?.exercises?.['marathi-to-latin']?.completedLetters
+                  .length ?? 0
+              }
+              max={16}
             />
             <div className="mt-2 text-sm text-muted-foreground">
-              {progress?.exercises?.['marathi-to-latin']?.completedLetters.length ?? 0} of 16 letters mastered
+              {progress?.exercises?.['marathi-to-latin']?.completedLetters
+                .length ?? 0}{' '}
+              of 16 letters mastered
             </div>
           </Card>
 
@@ -171,7 +194,9 @@ export default function Dashboard() {
               <div>
                 <Trophy className="w-8 h-8 text-primary mb-2" />
                 <h3 className="text-lg font-semibold">Latin to Marathi</h3>
-                <p className="text-sm text-muted-foreground">Practice writing Marathi letters</p>
+                <p className="text-sm text-muted-foreground">
+                  Practice writing Marathi letters
+                </p>
               </div>
               <Link href="/learning?mode=latin-to-marathi">
                 <Button variant="outline" size="sm">
@@ -179,12 +204,17 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
-            <Progress 
-              value={progress?.exercises?.['latin-to-marathi']?.completedLetters.length ?? 0} 
-              max={16} 
+            <Progress
+              value={
+                progress?.exercises?.['latin-to-marathi']?.completedLetters
+                  .length ?? 0
+              }
+              max={16}
             />
             <div className="mt-2 text-sm text-muted-foreground">
-              {progress?.exercises?.['latin-to-marathi']?.completedLetters.length ?? 0} of 16 letters mastered
+              {progress?.exercises?.['latin-to-marathi']?.completedLetters
+                .length ?? 0}{' '}
+              of 16 letters mastered
             </div>
           </Card>
         </div>
@@ -211,7 +241,9 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No recent activity. Start learning now!</p>
+            <p className="text-muted-foreground">
+              No recent activity. Start learning now!
+            </p>
           )}
         </Card>
       </div>
