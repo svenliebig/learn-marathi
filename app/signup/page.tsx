@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { db } from '@/lib/database';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -29,23 +28,33 @@ export default function Signup() {
     }
 
     try {
-      const existingUser = await db.getUser(email);
-      if (existingUser) {
-        setError('Email already exists');
-        return;
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create account');
       }
 
-      const newUser = {
-        id: crypto.randomUUID(),
-        email,
-        password, // In production, hash the password
-        createdAt: new Date().toISOString(),
-      };
+      // After successful signup, log the user in
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-      await db.saveUser(newUser);
+      if (!loginRes.ok) {
+        throw new Error('Account created but failed to log in');
+      }
+
       router.push('/dashboard');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+      router.refresh(); // Refresh server components
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }

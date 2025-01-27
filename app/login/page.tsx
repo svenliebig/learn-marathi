@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { db } from '@/lib/database';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -22,15 +21,21 @@ export default function Login() {
     setError('');
 
     try {
-      const user = await db.getUser(email);
-      if (user && user.password === password) {
-        // In production, use proper password hashing
-        router.push('/dashboard');
-      } else {
-        setError('Invalid email or password');
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Login failed');
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+
+      router.push('/dashboard');
+      router.refresh(); // Refresh server components
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
