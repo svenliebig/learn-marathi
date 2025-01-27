@@ -1,4 +1,4 @@
-import { verifyUser } from '@/lib/db';
+import { db } from '@/lib/db';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
-    const user = await verifyUser(email, password);
+    const user = await db.verifyUser(email, password);
 
     if (!user) {
       return NextResponse.json(
