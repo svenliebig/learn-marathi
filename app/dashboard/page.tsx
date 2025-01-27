@@ -1,25 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { db } from '@/lib/database';
+import { marathiAlphabet } from '@/lib/marathi-data';
+import { UserProgress } from '@/lib/types';
 import {
-  BookOpen,
-  Trophy,
   ArrowRight,
-  Star,
+  BookOpen,
   Clock,
+  Star,
   Target,
+  Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
-import { UserProgress } from '@/lib/types';
-import { db } from '@/lib/database';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [streakDays, setStreakDays] = useState(0);
+  const totalLetters = marathiAlphabet.length;
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -72,6 +74,7 @@ export default function Dashboard() {
       (acc, ex) => acc + ex.completedLetters.length,
       0
     );
+
     const targetLetters = exercises.length * 16; // Assuming 16 letters per exercise
     return Math.round((totalLetters / targetLetters) * 100);
   };
@@ -180,12 +183,12 @@ export default function Dashboard() {
                 progress?.exercises?.['marathi-to-latin']?.completedLetters
                   .length ?? 0
               }
-              max={16}
+              max={totalLetters}
             />
             <div className="mt-2 text-sm text-muted-foreground">
               {progress?.exercises?.['marathi-to-latin']?.completedLetters
                 .length ?? 0}{' '}
-              of 16 letters mastered
+              of {totalLetters} letters mastered
             </div>
           </Card>
 
@@ -209,12 +212,12 @@ export default function Dashboard() {
                 progress?.exercises?.['latin-to-marathi']?.completedLetters
                   .length ?? 0
               }
-              max={16}
+              max={totalLetters}
             />
             <div className="mt-2 text-sm text-muted-foreground">
               {progress?.exercises?.['latin-to-marathi']?.completedLetters
                 .length ?? 0}{' '}
-              of 16 letters mastered
+              of {totalLetters} letters mastered
             </div>
           </Card>
         </div>
