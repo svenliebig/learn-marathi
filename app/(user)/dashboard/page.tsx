@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/lib/context/auth/auth-context';
-import { db } from '@/lib/database';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { UserProgress } from '@/lib/types';
 import {
@@ -16,13 +15,15 @@ import {
   Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
+  const router = useRouter();
   const { userId, isLoading: authLoading, error: authError } = useAuth();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [streakDays, setStreakDays] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const totalLetters = marathiAlphabet.length;
 
   useEffect(() => {
@@ -30,35 +31,29 @@ export default function Dashboard() {
       if (!userId) return;
 
       try {
-        const userProgress = await db.getUserProgress(userId);
-        setProgress(userProgress);
-
-        // Calculate streak
-        const today = new Date().toISOString().split('T')[0];
-        if (userProgress.lastActivity === today) {
-          setStreakDays(userProgress.streakDays || 0);
-        } else if (userProgress.lastActivity) {
-          const lastDate = new Date(userProgress.lastActivity);
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          if (
-            lastDate.toISOString().split('T')[0] ===
-            yesterday.toISOString().split('T')[0]
-          ) {
-            setStreakDays(userProgress.streakDays || 0);
-          } else {
-            setStreakDays(0);
+        const response = await fetch('/api/user/progress');
+        if (!response.ok) {
+          const data = await response.json();
+          if (response.status === 401) {
+            // Handle unauthorized - redirect to login
+            router.push('/login');
+            return;
           }
+          throw new Error(data.error || 'Failed to load progress');
         }
-      } catch (error) {
-        console.error('Failed to load progress:', error);
+
+        const userProgress = await response.json();
+        setProgress(userProgress);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Failed to load progress:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadProgress();
-  }, [userId]);
+  }, [userId, router]);
 
   if (authLoading || isLoading) {
     return (
@@ -134,7 +129,9 @@ export default function Dashboard() {
               <Star className="w-8 h-8 text-yellow-500" />
               <div>
                 <h3 className="text-lg font-semibold">Daily Streak</h3>
-                <p className="text-2xl font-bold">{streakDays} days</p>
+                <p className="text-2xl font-bold">
+                  {progress?.streakDays || 0} days
+                </p>
               </div>
             </div>
           </Card>

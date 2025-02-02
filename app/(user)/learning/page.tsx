@@ -5,8 +5,6 @@ import { ExerciseComplete } from '@/components/ui/exercise-complete';
 import { LetterCard } from '@/components/ui/letter-card';
 import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
 import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/lib/context/auth/auth-context';
-import { db } from '@/lib/database';
 import { AnswerService } from '@/lib/services/answer-service';
 import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
@@ -18,7 +16,6 @@ import { useMemo, useRef, useState } from 'react';
 export default function Learning() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { userId } = useAuth();
   const [exercise, setExercise] = useState<ExerciseState>({
     mode:
       (searchParams.get('mode') as 'marathi-to-latin' | 'latin-to-marathi') ||
@@ -97,43 +94,25 @@ export default function Learning() {
     setIsAnimating(true);
     setSelectedAnswer(answer);
 
-    // Update progress
-    const progress = await db.getUserProgress(userId!);
+    // Update progress via API
     const letterKey =
       exercise.mode === 'marathi-to-latin'
         ? currentLetter.marathi
         : currentLetter.latin;
 
-    if (!progress.exercises[exercise.mode]) {
-      progress.exercises[exercise.mode] = {
-        completedLetters: [],
-        letterStats: {},
-      };
+    try {
+      await fetch('/api/user/progress', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: exercise.mode,
+          letter: letterKey,
+          answer: isCorrect ? 'correct' : 'wrong',
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to update progress:', error);
     }
-
-    if (!progress.exercises[exercise.mode].letterStats[letterKey]) {
-      progress.exercises[exercise.mode].letterStats[letterKey] = {
-        attempts: 0,
-        correct: 0,
-        lastTenAttempts: [],
-      };
-    }
-
-    const stats = progress.exercises[exercise.mode].letterStats[letterKey];
-    stats.attempts++;
-    if (isCorrect) stats.correct++;
-    stats.lastTenAttempts = [...stats.lastTenAttempts.slice(-9), isCorrect];
-
-    // Check if letter is mastered (last 10 attempts all correct)
-    if (
-      stats.lastTenAttempts.length >= 10 &&
-      stats.lastTenAttempts.every(attempt => attempt) &&
-      !progress.exercises[exercise.mode].completedLetters.includes(letterKey)
-    ) {
-      progress.exercises[exercise.mode].completedLetters.push(letterKey);
-    }
-
-    await db.updateUserProgress(userId!, progress);
 
     setExercise(prev => ({
       ...prev,

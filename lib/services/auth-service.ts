@@ -4,6 +4,10 @@ import { SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+export type UserPayload = {
+  userId: string;
+};
+
 export class AuthService {
   async login(email: string, password: string) {
     const user = await db.getUser(email);
