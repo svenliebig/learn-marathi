@@ -1,8 +1,7 @@
 'use client';
 
 import { AnswersGrid } from '@/components/ui/answers-grid';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { ExerciseComplete } from '@/components/ui/exercise-complete';
 import { LetterCard } from '@/components/ui/letter-card';
 import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
 import { AnswerService } from '@/lib/services/answer-service';
@@ -10,7 +9,6 @@ import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 
 export default function GetStarted() {
@@ -75,39 +73,20 @@ export default function GetStarted() {
 
   if (showStats) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto p-8">
-          <h2 className="text-2xl font-bold mb-4">Exercise Complete!</h2>
-          <div className="space-y-4 mb-8">
-            <p>Correct Answers: {exercise.score}</p>
-            <p>Mistakes: {exercise.mistakes}</p>
-            <p>
-              Accuracy: {((exercise.score / exercise.size) * 100).toFixed(1)}%
-            </p>
-          </div>
-          <div className="space-y-4">
-            <Link href="/login">
-              <Button className="w-full">Sign Up to Continue Learning</Button>
-            </Link>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setExercise({
-                  ...exercise,
-                  currentIndex: 0,
-                  score: 0,
-                  mistakes: 0,
-                  history: [],
-                });
-                setShowStats(false);
-              }}
-            >
-              Try Again
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <ExerciseComplete
+        exercise={exercise}
+        onTryAgain={() => {
+          setExercise({
+            ...exercise,
+            currentIndex: 0,
+            score: 0,
+            mistakes: 0,
+            history: [],
+          });
+          setShowStats(false);
+        }}
+        showSignUp
+      />
     );
   }
 

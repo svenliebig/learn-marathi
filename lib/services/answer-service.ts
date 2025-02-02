@@ -1,4 +1,4 @@
-import { ExerciseMode } from '../types/exercise';
+import { ExerciseMode } from '../types';
 import { LetterService } from './letter-service';
 
 export class AnswerService {
