@@ -157,10 +157,9 @@ export default async function Dashboard() {
             </div>
             <Progress
               value={
-                progress?.exercises?.['marathi-to-latin']?.completedLetters
-                  .length ?? 0
+                (progress?.exercises?.['marathi-to-latin']?.completedLetters
+                  .length ?? 0) / totalLetters
               }
-              max={totalLetters}
             />
             <div className="mt-2 text-sm text-muted-foreground">
               {progress?.exercises?.['marathi-to-latin']?.completedLetters
@@ -186,10 +185,9 @@ export default async function Dashboard() {
             </div>
             <Progress
               value={
-                progress?.exercises?.['latin-to-marathi']?.completedLetters
-                  .length ?? 0
+                (progress?.exercises?.['latin-to-marathi']?.completedLetters
+                  .length ?? 0) / totalLetters
               }
-              max={totalLetters}
             />
             <div className="mt-2 text-sm text-muted-foreground">
               {progress?.exercises?.['latin-to-marathi']?.completedLetters
