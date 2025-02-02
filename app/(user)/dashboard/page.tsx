@@ -199,33 +199,53 @@ export default async function Dashboard() {
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <Card className="p-6 mt-8">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          {progress && Object.keys(progress.exercises).length > 0 ? (
-            <div className="space-y-4">
-              {Object.entries(progress.exercises).map(([mode, data]) => (
-                <div key={mode} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{mode}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {data.completedLetters.length} letters mastered
-                    </p>
-                  </div>
-                  <Link href={`/learning?mode=${mode}`}>
-                    <Button variant="ghost" size="sm">
-                      Continue
-                    </Button>
-                  </Link>
-                </div>
-              ))}
+        {/* Marathi Alphabet */}
+        <div className="grid md:grid-cols-3 gap-6 mt-8">
+          <Card className="p-6 md:col-span-1 col-span-3">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <BookOpen className="w-8 h-8 text-primary mb-2" />
+                <h3 className="text-lg font-semibold">Marathi Alphabet</h3>
+                <p className="text-sm text-muted-foreground">
+                  View all letters and your progress
+                </p>
+              </div>
+              <Link href="/dashboard/marathi">
+                <Button variant="outline" size="sm">
+                  View All
+                </Button>
+              </Link>
             </div>
-          ) : (
-            <p className="text-muted-foreground">
-              No recent activity. Start learning now!
-            </p>
-          )}
-        </Card>
+          </Card>
+          <Card className="p-6 col-span-3 md:col-span-2">
+            <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+            {progress && Object.keys(progress.exercises).length > 0 ? (
+              <div className="space-y-4">
+                {Object.entries(progress.exercises).map(([mode, data]) => (
+                  <div key={mode} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{mode}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {data.completedLetters.length} letters mastered
+                      </p>
+                    </div>
+                    <Link href={`/learning?mode=${mode}`}>
+                      <Button variant="ghost" size="sm">
+                        Continue
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                No recent activity. Start learning now!
+              </p>
+            )}
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
       </div>
     </div>
   );
