@@ -94,6 +94,9 @@ export default function Learning() {
     setIsAnimating(true);
     setSelectedAnswer(answer);
 
+    const audio = new Audio(`/audio/marathi/${currentLetter.marathi}.mp3`);
+    await audio.play();
+
     // Update progress via API
     const letterKey =
       exercise.mode === 'marathi-to-latin'
@@ -170,6 +173,13 @@ export default function Learning() {
       ? currentLetter.marathi
       : currentLetter.latin;
 
+  const correctAnswer =
+    exercise.mode === 'marathi-to-latin'
+      ? currentLetter.latin
+      : currentLetter.marathi;
+
+  const isCorrect = correctAnswer === selectedAnswer;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
@@ -202,13 +212,10 @@ export default function Learning() {
                 ' representation'
               }
               className={cn('z-0 transition-all duration-300', {
-                'blur-sm':
-                  isAnimating && selectedAnswer === currentLetter.latin,
+                'blur-sm': isAnimating && isCorrect,
               })}
             />
-            {isAnimating && selectedAnswer === currentLetter.latin && (
-              <LetterCardSuccessCover />
-            )}
+            {isAnimating && isCorrect && <LetterCardSuccessCover />}
           </motion.div>
         </AnimatePresence>
 
@@ -216,7 +223,7 @@ export default function Learning() {
           answers={answers}
           onAnswer={handleAnswer}
           selectedAnswer={selectedAnswer}
-          correctAnswer={currentLetter.latin}
+          correctAnswer={correctAnswer}
           isAnimating={isAnimating}
         />
 
