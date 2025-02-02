@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/lib/context/auth/auth-context';
 import { db } from '@/lib/database';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { UserProgress } from '@/lib/types';
@@ -18,6 +19,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
+  const { userId, isLoading: authLoading, error: authError } = useAuth();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [streakDays, setStreakDays] = useState(0);
@@ -25,9 +27,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadProgress = async () => {
+      if (!userId) return;
+
       try {
-        // In production, get the actual user ID from the session
-        const userProgress = await db.getUserProgress('demo-user');
+        const userProgress = await db.getUserProgress(userId);
         setProgress(userProgress);
 
         // Calculate streak
@@ -55,12 +58,22 @@ export default function Dashboard() {
     };
 
     loadProgress();
-  }, []);
+  }, [userId]);
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-lg">Loading your progress...</div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-destructive">
+          Authentication error: {authError}
+        </div>
       </div>
     );
   }

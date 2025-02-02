@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/lib/context/auth/auth-context';
 import { db } from '@/lib/database';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { ExerciseState, UserProgress } from '@/lib/types';
@@ -14,6 +15,7 @@ import { useEffect, useState } from 'react';
 export default function Learning() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { userId } = useAuth();
   const [exercise, setExercise] = useState<ExerciseState>({
     mode:
       (searchParams.get('mode') as 'marathi-to-latin' | 'latin-to-marathi') ||
@@ -32,8 +34,9 @@ export default function Learning() {
 
   useEffect(() => {
     const initializeExercise = async () => {
-      // In production, get actual user ID from session
-      const progress = await db.getUserProgress('demo-user');
+      if (!userId) return;
+
+      const progress = await db.getUserProgress(userId);
       const availableLetters = selectLettersBasedOnProgress(progress);
       const selectedLetters = availableLetters
         .sort(() => Math.random() - 0.5)
@@ -50,7 +53,7 @@ export default function Learning() {
     };
 
     initializeExercise();
-  }, [exercise.mode, exercise.size]);
+  }, [userId, exercise.mode, exercise.size]);
 
   const selectLettersBasedOnProgress = (progress: UserProgress) => {
     const exerciseProgress = progress.exercises[exercise.mode];
@@ -103,7 +106,7 @@ export default function Learning() {
     const isCorrect = answer === correctAnswer;
 
     // Update progress
-    const progress = await db.getUserProgress('demo-user');
+    const progress = await db.getUserProgress(userId!);
     const letterKey =
       exercise.mode === 'marathi-to-latin'
         ? currentLetter.marathi
@@ -138,7 +141,7 @@ export default function Learning() {
       progress.exercises[exercise.mode].completedLetters.push(letterKey);
     }
 
-    await db.updateUserProgress('demo-user', progress);
+    await db.updateUserProgress(userId!, progress);
 
     setExercise(prev => ({
       ...prev,
