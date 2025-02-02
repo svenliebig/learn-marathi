@@ -1,10 +1,9 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/lib/context/auth/auth-context';
 import { marathiAlphabet } from '@/lib/marathi-data';
+import { authService } from '@/lib/services/auth-service';
+import { progressService } from '@/lib/services/progress-service';
 import { UserProgress } from '@/lib/types';
 import {
   ArrowRight,
@@ -14,63 +13,31 @@ import {
   Target,
   Trophy,
 } from 'lucide-react';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
-export default function Dashboard() {
-  const router = useRouter();
-  const { userId, isLoading: authLoading, error: authError } = useAuth();
-  const [progress, setProgress] = useState<UserProgress | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function getProgress(): Promise<UserProgress | null> {
+  try {
+    const token = cookies().get('auth-token');
+    if (!token) return null;
+
+    const payload = await authService.verifyToken(token.value);
+    if (!payload) return null;
+
+    const userId = payload.userId;
+    return await progressService.getUserProgress(userId);
+  } catch (error) {
+    console.error('Failed to load progress:', error);
+    return null;
+  }
+}
+
+export default async function Dashboard() {
+  const progress = await getProgress();
   const totalLetters = marathiAlphabet.length;
 
-  useEffect(() => {
-    const loadProgress = async () => {
-      if (!userId) return;
-
-      try {
-        const response = await fetch('/api/user/progress');
-        if (!response.ok) {
-          const data = await response.json();
-          if (response.status === 401) {
-            // Handle unauthorized - redirect to login
-            router.push('/login');
-            return;
-          }
-          throw new Error(data.error || 'Failed to load progress');
-        }
-
-        const userProgress = await response.json();
-        setProgress(userProgress);
-      } catch (err: any) {
-        setError(err.message);
-        console.error('Failed to load progress:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProgress();
-  }, [userId, router]);
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-lg">Loading your progress...</div>
-      </div>
-    );
-  }
-
-  if (authError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-destructive">
-          Authentication error: {authError}
-        </div>
-      </div>
-    );
+  if (!progress) {
+    return <div>No progress found.</div>;
   }
 
   const calculateOverallProgress = () => {

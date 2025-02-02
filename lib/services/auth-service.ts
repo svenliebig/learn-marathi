@@ -45,7 +45,7 @@ export class AuthService {
         token,
         new TextEncoder().encode(JWT_SECRET)
       );
-      return result.payload;
+      return result.payload as UserPayload;
     } catch {
       return null;
     }
