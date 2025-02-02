@@ -4,11 +4,13 @@ import { AnswersGrid } from '@/components/ui/answers-grid';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LetterCard } from '@/components/ui/letter-card';
+import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { ExerciseState } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function GetStarted() {
   const [exercise, setExercise] = useState<ExerciseState>({
@@ -24,6 +26,8 @@ export default function GetStarted() {
   });
 
   const [showStats, setShowStats] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const generateAnswers = (correct: string) => {
     const answers = [correct];
@@ -38,7 +42,13 @@ export default function GetStarted() {
   };
 
   const handleAnswer = (answer: string) => {
-    const isCorrect = answer === exercise.correctAnswer;
+    if (isAnimating) return;
+
+    const currentLetter = exercise.letters[exercise.currentIndex];
+    const isCorrect = answer === currentLetter.latin;
+    setIsAnimating(true);
+    setSelectedAnswer(answer);
+
     setExercise(prev => ({
       ...prev,
       score: isCorrect ? prev.score + 1 : prev.score,
@@ -47,13 +57,29 @@ export default function GetStarted() {
         ...prev.history,
         { letter: prev.letters[prev.currentIndex].marathi, correct: isCorrect },
       ],
-      currentIndex: prev.currentIndex + 1,
     }));
 
-    if (exercise.currentIndex + 1 >= exercise.size) {
-      setShowStats(true);
-    }
+    // Wait for animation
+    setTimeout(() => {
+      setIsAnimating(false);
+      setSelectedAnswer(null);
+
+      if (exercise.currentIndex + 1 >= exercise.size) {
+        setShowStats(true);
+      } else {
+        setExercise(prev => ({
+          ...prev,
+          currentIndex: prev.currentIndex + 1,
+        }));
+      }
+    }, 1000);
   };
+
+  const currentLetter = exercise.letters[exercise.currentIndex];
+  const answers = useMemo(
+    () => generateAnswers(currentLetter.latin),
+    [currentLetter.latin]
+  );
 
   if (showStats) {
     return (
@@ -93,9 +119,6 @@ export default function GetStarted() {
     );
   }
 
-  const currentLetter = exercise.letters[exercise.currentIndex];
-  const answers = generateAnswers(currentLetter.latin);
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
@@ -106,15 +129,29 @@ export default function GetStarted() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="relative"
           >
+            {isAnimating && selectedAnswer === currentLetter.latin && (
+              <LetterCardSuccessCover />
+            )}
             <LetterCard
               letter={currentLetter.marathi}
               instruction="Choose the correct Latin representation"
+              className={cn('z-0 transition-all duration-300', {
+                'blur-sm':
+                  isAnimating && selectedAnswer === currentLetter.latin,
+              })}
             />
           </motion.div>
         </AnimatePresence>
 
-        <AnswersGrid answers={answers} onAnswer={handleAnswer} />
+        <AnswersGrid
+          answers={answers}
+          onAnswer={handleAnswer}
+          selectedAnswer={selectedAnswer}
+          correctAnswer={currentLetter.latin}
+          isAnimating={isAnimating}
+        />
 
         <div className="mt-8 flex justify-between text-sm text-muted-foreground">
           <span>
