@@ -5,19 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LetterCard } from '@/components/ui/letter-card';
 import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
-import { marathiAlphabet } from '@/lib/marathi-data';
+import { AnswerService } from '@/lib/services/answer-service';
+import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 export default function GetStarted() {
   const [exercise, setExercise] = useState<ExerciseState>({
     mode: 'marathi-to-latin',
     size: 8,
     currentIndex: 0,
-    letters: marathiAlphabet.slice(0, 8),
+    letters: LetterService.getRandomLetters(8, 1),
     answers: [],
     correctAnswer: '',
     score: 0,
@@ -28,18 +29,9 @@ export default function GetStarted() {
   const [showStats, setShowStats] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-
-  const generateAnswers = (correct: string) => {
-    const answers = [correct];
-    while (answers.length < 4) {
-      const randomLetter =
-        marathiAlphabet[Math.floor(Math.random() * marathiAlphabet.length)];
-      if (!answers.includes(randomLetter.latin)) {
-        answers.push(randomLetter.latin);
-      }
-    }
-    return answers.sort(() => Math.random() - 0.5);
-  };
+  const answerService = useRef<AnswerService>(
+    new AnswerService('marathi-to-latin', 1)
+  );
 
   const handleAnswer = (answer: string) => {
     if (isAnimating) return;
@@ -77,7 +69,7 @@ export default function GetStarted() {
 
   const currentLetter = exercise.letters[exercise.currentIndex];
   const answers = useMemo(
-    () => generateAnswers(currentLetter.latin),
+    () => answerService.current.generateAnswers(currentLetter.latin),
     [currentLetter.latin]
   );
 
