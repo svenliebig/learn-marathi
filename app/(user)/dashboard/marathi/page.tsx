@@ -1,5 +1,7 @@
+import { AudioButton } from '@/components/ui/audio-button';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Progress } from '@/components/ui/progress';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { authService } from '@/lib/services/auth-service';
@@ -78,12 +80,22 @@ export default async function MarathiAlphabet() {
                 }`}
               >
                 <div className="text-center mb-2">
-                  <span className="text-4xl font-bold block mb-1">
-                    {letter.marathi}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {letter.latin}
-                  </span>
+                  <div className="relative">
+                    <div className="absolute top-0 left-0">
+                      <CopyButton text={letter.marathi} />
+                    </div>
+                    <div className="absolute top-0 right-0">
+                      <AudioButton letter={letter.marathi} />
+                    </div>
+                    <div className="pt-12">
+                      <span className="text-4xl font-bold">
+                        {letter.marathi}
+                      </span>
+                      <span className="block text-sm text-muted-foreground mt-2">
+                        {letter.latin}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <Progress
                   value={getLetterProgress(letter.marathi, 'marathi-to-latin')}
@@ -105,7 +117,7 @@ export default async function MarathiAlphabet() {
 
         <section>
           <h2 className="text-2xl font-semibold mb-6">Consonants</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {consonants.map(letter => (
               <Card
                 key={letter.marathi}
@@ -116,12 +128,22 @@ export default async function MarathiAlphabet() {
                 }`}
               >
                 <div className="text-center mb-2">
-                  <span className="text-4xl font-bold block mb-1">
-                    {letter.marathi}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {letter.latin}
-                  </span>
+                  <div className="relative">
+                    <div className="absolute top-0 left-0">
+                      <CopyButton text={letter.marathi} />
+                    </div>
+                    <div className="absolute top-0 right-0">
+                      <AudioButton letter={letter.marathi} />
+                    </div>
+                    <div className="pt-12">
+                      <span className="text-4xl font-bold">
+                        {letter.marathi}
+                      </span>
+                      <span className="block text-sm text-muted-foreground mt-2">
+                        {letter.latin}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <Progress
                   value={getLetterProgress(letter.marathi, 'marathi-to-latin')}
