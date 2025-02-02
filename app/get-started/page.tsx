@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { AnswersGrid } from '@/components/ui/answers-grid';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { LetterCard } from '@/components/ui/letter-card';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { ExerciseState } from '@/lib/types';
+import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function GetStarted() {
   const [exercise, setExercise] = useState<ExerciseState>({
@@ -105,29 +107,14 @@ export default function GetStarted() {
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
-            <Card className="p-12 mb-8 text-center transform-gpu hover:scale-105 transition-transform">
-              <h2 className="text-6xl mb-4 font-bold">
-                {currentLetter.marathi}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Choose the correct Latin representation
-              </p>
-            </Card>
+            <LetterCard
+              letter={currentLetter.marathi}
+              instruction="Choose the correct Latin representation"
+            />
           </motion.div>
         </AnimatePresence>
 
-        <div className="grid grid-cols-2 gap-4">
-          {answers.map((answer, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              className="p-4 text-lg"
-              onClick={() => handleAnswer(answer)}
-            >
-              {answer}
-            </Button>
-          ))}
-        </div>
+        <AnswersGrid answers={answers} onAnswer={handleAnswer} />
 
         <div className="mt-8 flex justify-between text-sm text-muted-foreground">
           <span>
