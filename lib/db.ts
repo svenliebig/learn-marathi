@@ -1,43 +1,53 @@
 import { hash } from 'bcrypt';
-import { open } from 'sqlite';
-import sqlite3 from 'sqlite3';
 import { DatabaseInterface, User, UserProgress } from './types';
 
+import { createServerClient } from '@supabase/ssr';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
+import { Database } from './supabase';
+
+export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
+  return createServerClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  );
+};
+
 class SQLiteDatabase implements DatabaseInterface {
-  private db: any = null;
+  private db: SupabaseClient<Database, 'public', any> | null = null;
 
   private async getDb() {
     if (!this.db) {
-      this.db = await open({
-        filename: './database.sqlite',
-        driver: sqlite3.Database,
-      });
-
-      await this.db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
-          id TEXT PRIMARY KEY,
-          email TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS user_progress (
-          user_id TEXT PRIMARY KEY,
-          exercises TEXT NOT NULL,
-          streak_days INTEGER DEFAULT 0,
-          last_activity TEXT,
-          total_practice_time INTEGER DEFAULT 0,
-          achievements TEXT,
-          FOREIGN KEY(user_id) REFERENCES users(id)
-        );
-      `);
+      this.db = createClient(cookies());
     }
     return this.db;
   }
 
   async getUser(email: string): Promise<User | null> {
     const db = await this.getDb();
-    const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    const {
+      data: user,
+      error,
+      status,
+    } = await db.from('users').select('*').eq('email', email).single();
     return user
       ? {
           id: user.id,
@@ -50,18 +60,25 @@ class SQLiteDatabase implements DatabaseInterface {
 
   async saveUser(user: User): Promise<void> {
     const db = await this.getDb();
-    await db.run(
-      'INSERT OR REPLACE INTO users (id, email, password, created_at) VALUES (?, ?, ?, ?)',
-      [user.id, user.email, user.password, user.createdAt]
-    );
+    await db.from('users').insert({
+      id: user.id,
+      email: user.email,
+      password: user.password,
+      created_at: user.createdAt,
+    });
   }
 
   async getUserProgress(userId: string): Promise<UserProgress> {
     const db = await this.getDb();
-    const progress = await db.get(
-      'SELECT * FROM user_progress WHERE user_id = ?',
-      [userId]
-    );
+    const {
+      data: progress,
+      error,
+      status,
+    } = await db
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
     if (!progress) {
       return {
@@ -88,19 +105,14 @@ class SQLiteDatabase implements DatabaseInterface {
     progress: UserProgress
   ): Promise<void> {
     const db = await this.getDb();
-    await db.run(
-      `INSERT OR REPLACE INTO user_progress 
-       (user_id, exercises, streak_days, last_activity, total_practice_time, achievements)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        userId,
-        JSON.stringify(progress.exercises),
-        progress.streakDays,
-        progress.lastActivity,
-        progress.totalPracticeTime,
-        JSON.stringify(progress.achievements),
-      ]
-    );
+    await db.from('user_progress').insert({
+      user_id: userId,
+      exercises: JSON.stringify(progress.exercises),
+      streak_days: progress.streakDays,
+      last_activity: progress.lastActivity,
+      total_practice_time: progress.totalPracticeTime,
+      achievements: JSON.stringify(progress.achievements),
+    });
   }
 
   // Helper methods for auth
