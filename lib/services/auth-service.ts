@@ -1,12 +1,16 @@
 import { db } from '@/lib/db';
+import { compare } from 'bcrypt';
 import { SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export class AuthService {
   async login(email: string, password: string) {
-    const user = await db.verifyUser(email, password);
+    const user = await db.getUser(email);
     if (!user) return null;
+
+    const isValid = await compare(password, user.password);
+    if (!isValid) return null;
 
     const token = await new SignJWT({ userId: user.id })
       .setProtectedHeader({ alg: 'HS256' })

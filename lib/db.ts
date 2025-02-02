@@ -1,4 +1,4 @@
-import { compare, hash } from 'bcrypt';
+import { hash } from 'bcrypt';
 import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { DatabaseInterface, User, UserProgress } from './types';
@@ -125,20 +125,6 @@ class SQLiteDatabase implements DatabaseInterface {
     });
 
     return { id, email };
-  }
-
-  // TODO should be a service method
-  async verifyUser(
-    email: string,
-    password: string
-  ): Promise<{ id: string; email: string } | null> {
-    const user = await this.getUser(email);
-    if (!user) return null;
-
-    const isValid = await compare(password, user.password);
-    if (!isValid) return null;
-
-    return { id: user.id, email: user.email };
   }
 }
 
