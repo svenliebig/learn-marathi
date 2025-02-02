@@ -4,6 +4,7 @@ import { AnswersGrid } from '@/components/ui/answers-grid';
 import { ExerciseComplete } from '@/components/ui/exercise-complete';
 import { LetterCard } from '@/components/ui/letter-card';
 import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
+import { Progress } from '@/components/ui/progress';
 import { AnswerService } from '@/lib/services/answer-service';
 import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
@@ -38,6 +39,9 @@ export default function GetStarted() {
     const isCorrect = answer === currentLetter.latin;
     setIsAnimating(true);
     setSelectedAnswer(answer);
+
+    const audio = new Audio(`/audio/marathi/${currentLetter.marathi}.mp3`);
+    audio.play();
 
     setExercise(prev => ({
       ...prev,
@@ -90,9 +94,33 @@ export default function GetStarted() {
     );
   }
 
+  const displayLetter =
+    exercise.mode === 'marathi-to-latin'
+      ? currentLetter.marathi
+      : currentLetter.latin;
+
+  const correctAnswer =
+    exercise.mode === 'marathi-to-latin'
+      ? currentLetter.latin
+      : currentLetter.marathi;
+
+  const isCorrect = correctAnswer === selectedAnswer;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold mb-2 text-center">
+            {exercise.mode === 'marathi-to-latin'
+              ? 'Identify the Marathi Letter'
+              : 'Write in Marathi'}
+          </h1>
+          <Progress
+            value={(exercise.currentIndex / exercise.size) * 100}
+            className="h-2"
+          />
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={exercise.currentIndex}
@@ -102,17 +130,18 @@ export default function GetStarted() {
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="relative"
           >
-            {isAnimating && selectedAnswer === currentLetter.latin && (
-              <LetterCardSuccessCover />
-            )}
             <LetterCard
-              letter={currentLetter.marathi}
-              instruction="Choose the correct Latin representation"
+              letter={displayLetter}
+              instruction={
+                'Choose the correct ' +
+                (exercise.mode === 'marathi-to-latin' ? 'Latin' : 'Marathi') +
+                ' representation'
+              }
               className={cn('z-0 transition-all duration-300', {
-                'blur-sm':
-                  isAnimating && selectedAnswer === currentLetter.latin,
+                'blur-sm': isAnimating && isCorrect,
               })}
             />
+            {isAnimating && isCorrect && <LetterCardSuccessCover />}
           </motion.div>
         </AnimatePresence>
 
@@ -120,7 +149,7 @@ export default function GetStarted() {
           answers={answers}
           onAnswer={handleAnswer}
           selectedAnswer={selectedAnswer}
-          correctAnswer={currentLetter.latin}
+          correctAnswer={correctAnswer}
           isAnimating={isAnimating}
         />
 
