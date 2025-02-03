@@ -1,4 +1,5 @@
 import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Toaster } from '@/components/ui/toaster';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -25,6 +26,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <div className="absolute top-4 right-4 z-10">
+            <ThemeToggle />
+          </div>
           {children}
           <Toaster />
         </ThemeProvider>

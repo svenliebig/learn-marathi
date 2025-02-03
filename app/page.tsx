@@ -1,4 +1,3 @@
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
@@ -6,11 +5,6 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="min-h-screen">
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="container px-4 mx-auto text-center">
