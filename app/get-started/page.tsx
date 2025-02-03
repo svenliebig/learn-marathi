@@ -10,20 +10,28 @@ import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function GetStarted() {
-  const [exercise, setExercise] = useState<ExerciseState>({
+  const [exercise, setExercise] = useState<ExerciseState>(() => ({
     mode: 'marathi-to-latin',
     size: 8,
     currentIndex: 0,
-    letters: LetterService.getRandomLettersWithAudio(8, 1),
+    letters: [],
     answers: [],
     correctAnswer: '',
     score: 0,
     mistakes: 0,
     history: [],
-  });
+  }));
+
+  useEffect(() => {
+    // Initialize letters with audio on client side
+    setExercise(prev => ({
+      ...prev,
+      letters: LetterService.getRandomLettersWithAudio(8, 1),
+    }));
+  }, []);
 
   const [showStats, setShowStats] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -69,11 +77,15 @@ export default function GetStarted() {
     }, 1000);
   };
 
-  const currentLetter = exercise.letters[exercise.currentIndex];
+  const currentLetter = exercise.letters?.[exercise.currentIndex];
   const answers = useMemo(
-    () => answerService.current.generateAnswers(currentLetter.latin),
-    [currentLetter.latin]
+    () => answerService.current.generateAnswers(currentLetter?.latin),
+    [currentLetter?.latin]
   );
+
+  if (!currentLetter) {
+    return <div>Loading...</div>;
+  }
 
   if (showStats) {
     return (

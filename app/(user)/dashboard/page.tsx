@@ -16,12 +16,11 @@ import {
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
-async function getProgress(): Promise<UserProgress | null> {
-  try {
-    const token = cookies().get('auth-token');
-    if (!token) return null;
+async function getProgress(token?: string): Promise<UserProgress | null> {
+  if (!token) return null;
 
-    const payload = await authService.verifyToken(token.value);
+  try {
+    const payload = await authService.verifyToken(token);
     if (!payload) return null;
 
     const userId = payload.userId;
@@ -33,7 +32,8 @@ async function getProgress(): Promise<UserProgress | null> {
 }
 
 export default async function Dashboard() {
-  const progress = await getProgress();
+  const token = cookies().get('auth-token');
+  const progress = await getProgress(token?.value);
   const totalLetters = marathiAlphabet.length;
 
   if (!progress) {

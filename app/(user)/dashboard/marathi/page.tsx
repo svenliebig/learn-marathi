@@ -11,24 +11,30 @@ import { ArrowLeft } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
-async function getProgress(): Promise<UserProgress | null> {
-  try {
-    const token = cookies().get('auth-token');
-    if (!token) return null;
+async function getProgress(token?: string): Promise<UserProgress | null> {
+  if (!token) return null;
 
-    const payload = await authService.verifyToken(token.value);
+  try {
+    const payload = await authService.verifyToken(token);
     if (!payload) return null;
 
     const userId = payload.userId;
-    return await progressService.getUserProgress(userId);
+    const result = await progressService.getUserProgress(userId);
+
+    return new Promise(resolve => {
+      resolve(result);
+    });
   } catch (error) {
     console.error('Failed to load progress:', error);
-    return null;
+    return new Promise(resolve => {
+      resolve(null);
+    });
   }
 }
 
 export default async function MarathiAlphabet() {
-  const progress = await getProgress();
+  const token = cookies().get('auth-token');
+  const progress = await getProgress(token?.value);
 
   const getLetterProgress = (
     letter: string,
