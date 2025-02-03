@@ -17,7 +17,7 @@ export default function GetStarted() {
     mode: 'marathi-to-latin',
     size: 8,
     currentIndex: 0,
-    letters: LetterService.getRandomLetters(8, 1),
+    letters: LetterService.getRandomLettersWithAudio(8, 1),
     answers: [],
     correctAnswer: '',
     score: 0,
@@ -83,6 +83,7 @@ export default function GetStarted() {
           setExercise({
             ...exercise,
             currentIndex: 0,
+            letters: LetterService.getRandomLettersWithAudio(8, 1),
             score: 0,
             mistakes: 0,
             history: [],

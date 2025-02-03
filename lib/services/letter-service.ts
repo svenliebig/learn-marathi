@@ -29,6 +29,22 @@ export class LetterService {
     return letters.sort(() => Math.random() - 0.5).slice(0, amount);
   }
 
+  public static getRandomLettersWithAudio(
+    amount: number,
+    difficulty: number = 3
+  ): (Letter & { audio: HTMLAudioElement })[] {
+    const letters = marathiAlphabet.filter(
+      letter => letter.difficulty <= difficulty
+    );
+    return letters
+      .sort(() => Math.random() - 0.5)
+      .slice(0, amount)
+      .map(letter => ({
+        ...letter,
+        audio: new Audio(`/audio/marathi/${letter.marathi}.mp3`),
+      }));
+  }
+
   public static getRandomLatinLetter(difficulty: number = 3): string {
     const letters = marathiAlphabet.filter(
       letter => letter.difficulty <= difficulty

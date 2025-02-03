@@ -61,7 +61,7 @@ export interface ExerciseState {
   mode: ExerciseMode;
   size: ExerciseSize;
   currentIndex: number;
-  letters: MarathiLetter[];
+  letters: (MarathiLetter & { audio: HTMLAudioElement })[];
   answers: string[];
   correctAnswer: string;
   score: number;

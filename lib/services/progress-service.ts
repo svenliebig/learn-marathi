@@ -13,6 +13,7 @@ export class ProgressService {
     letterKey: string,
     isCorrect: boolean
   ) {
+    console.log('updateProgress', userId, exerciseMode, letterKey, isCorrect);
     const progress = await db.getUserProgress(userId);
 
     if (!progress.exercises[exerciseMode]) {
@@ -39,6 +40,7 @@ export class ProgressService {
     // Update streak and activity
     const updatedProgress = this.updateStreakAndActivity(progress);
 
+    console.log('updatedProgress', { userId, updatedProgress });
     await db.updateUserProgress(userId, updatedProgress);
     return updatedProgress;
   }

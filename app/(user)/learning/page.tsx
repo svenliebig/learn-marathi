@@ -22,7 +22,7 @@ export default function Learning() {
       'marathi-to-latin',
     size: 8,
     currentIndex: 0,
-    letters: LetterService.getRandomLetters(8, 1),
+    letters: LetterService.getRandomLettersWithAudio(8, 1),
     answers: [],
     correctAnswer: '',
     score: 0,
@@ -94,8 +94,7 @@ export default function Learning() {
     setIsAnimating(true);
     setSelectedAnswer(answer);
 
-    const audio = new Audio(`/audio/marathi/${currentLetter.marathi}.mp3`);
-    await audio.play();
+    await (currentLetter as any).audio.play();
 
     // Update progress via API
     const letterKey =
@@ -103,19 +102,15 @@ export default function Learning() {
         ? currentLetter.marathi
         : currentLetter.latin;
 
-    try {
-      await fetch('/api/user/progress', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: exercise.mode,
-          letter: letterKey,
-          answer: isCorrect ? 'correct' : 'wrong',
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to update progress:', error);
-    }
+    fetch('/api/user/progress', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: exercise.mode,
+        letter: letterKey,
+        answer: isCorrect ? 'correct' : 'wrong',
+      }),
+    }).catch(error => console.error('Failed to update progress:', error));
 
     setExercise(prev => ({
       ...prev,
@@ -158,6 +153,7 @@ export default function Learning() {
             ...prev,
             currentIndex: 0,
             score: 0,
+            letters: LetterService.getRandomLettersWithAudio(8, 1),
             mistakes: 0,
             history: [],
           }));

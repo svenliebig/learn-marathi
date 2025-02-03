@@ -2,7 +2,7 @@ import { hash } from 'bcrypt';
 import { DatabaseInterface, User, UserProgress } from './types';
 
 import { createServerClient } from '@supabase/ssr';
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { Database } from './supabase';
 
@@ -48,6 +48,11 @@ class SQLiteDatabase implements DatabaseInterface {
       error,
       status,
     } = await db.from('users').select('*').eq('email', email).single();
+
+    if (error) {
+      console.error('Error getting user:', error);
+    }
+
     return user
       ? {
           id: user.id,
@@ -60,12 +65,16 @@ class SQLiteDatabase implements DatabaseInterface {
 
   async saveUser(user: User): Promise<void> {
     const db = await this.getDb();
-    await db.from('users').insert({
+    const { error } = await db.from('users').insert({
       id: user.id,
       email: user.email,
       password: user.password,
       created_at: user.createdAt,
     });
+
+    if (error) {
+      console.error('Error saving user:', error);
+    }
   }
 
   async getUserProgress(userId: string): Promise<UserProgress> {
@@ -105,14 +114,20 @@ class SQLiteDatabase implements DatabaseInterface {
     progress: UserProgress
   ): Promise<void> {
     const db = await this.getDb();
-    await db.from('user_progress').insert({
-      user_id: userId,
-      exercises: JSON.stringify(progress.exercises),
-      streak_days: progress.streakDays,
-      last_activity: progress.lastActivity,
-      total_practice_time: progress.totalPracticeTime,
-      achievements: JSON.stringify(progress.achievements),
-    });
+    const { error, status, statusText } = await db
+      .from('user_progress')
+      .update({
+        exercises: JSON.stringify(progress.exercises),
+        streak_days: progress.streakDays,
+        last_activity: progress.lastActivity,
+        total_practice_time: progress.totalPracticeTime,
+        achievements: JSON.stringify(progress.achievements),
+      })
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error updating user progress:', error);
+    }
   }
 
   // Helper methods for auth
