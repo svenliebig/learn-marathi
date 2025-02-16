@@ -4,7 +4,7 @@ import { CommonMistakes } from '@/components/ui/common-mistakes';
 import { Progress } from '@/components/ui/progress';
 import { getUserId } from '@/lib/services/auth/actions';
 import { progressService } from '@/lib/services/progress/progress-service';
-import { ArrowRight, BookOpen, Clock, Star, Target, Trophy } from 'lucide-react';
+import { BookOpen, Clock, Settings, Star, Target, Trophy } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
@@ -23,9 +23,10 @@ export default async function Dashboard() {
       <div className="flex flex-col max-w-4xl mx-auto gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Your Learning Dashboard</h1>
-          <Link href="/learning">
-            <Button className="gap-2">
-              Continue Learning <ArrowRight className="w-4 h-4" />
+          <Link href="/settings">
+            <Button variant="ghost" size="icon" className="hover:bg-accent">
+              <Settings className="w-5 h-5 text-muted-foreground" />
+              <span className="sr-only">Settings</span>
             </Button>
           </Link>
         </div>
