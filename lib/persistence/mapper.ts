@@ -9,7 +9,6 @@ const userProgress = {
       userId: data.user_id,
       lastActivity: data.last_activity ? new Date(data.last_activity) : null,
       streak: data.streak_days ?? 0,
-      exercises: JSON.parse(data.exercises),
     };
   },
   fullToModel: (data: Awaited<ReturnType<typeof db.getFullUserProgress>>): FullUserProgress => {
@@ -27,7 +26,6 @@ const userProgress = {
       user_id: model.userId,
       last_activity: model.lastActivity?.toISOString() ?? null,
       streak_days: model.streak,
-      exercises: JSON.stringify(model.exercises),
     };
   },
 };

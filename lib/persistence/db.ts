@@ -112,7 +112,6 @@ class SupebaseDatabase implements DatabaseInterface, ChallengePersistence {
     return {
       id: progress.id,
       user_id: progress.user_id,
-      exercises: progress.exercises,
       streak_days: progress.streak_days ?? 0,
       last_activity: progress.last_activity ?? null,
     };
@@ -153,7 +152,6 @@ class SupebaseDatabase implements DatabaseInterface, ChallengePersistence {
     const { error, status, statusText } = await db
       .from('user_progress')
       .update({
-        exercises: progress.exercises,
         streak_days: progress.streak_days,
         last_activity: progress.last_activity,
       })
@@ -268,7 +266,6 @@ class SupebaseDatabase implements DatabaseInterface, ChallengePersistence {
 
     await this.saveUser(user);
     await this.updateUserProgress(user.id, {
-      exercises: '{}',
       streak_days: 0,
       last_activity: null,
       user_id: user.id,

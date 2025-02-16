@@ -5,9 +5,6 @@ export type UserProgress = {
   userId: string;
   lastActivity: Date | null;
   streak: number;
-  exercises: {
-    [exerciseId: string]: ExerciseProgress;
-  };
 };
 
 export type FullUserProgress = {

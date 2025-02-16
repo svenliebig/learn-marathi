@@ -6,7 +6,6 @@ import { moduleService } from '../modules/module-service';
 import {
   Challenge,
   DashboardProgress,
-  ExerciseProgress,
   FullUserProgress,
   MasteryLevel,
   UserProgress,
@@ -113,7 +112,16 @@ export class ProgressService {
     mode: ExerciseMode
   ) {
     const progress = await this.getUserProgress(userId);
-    return this.updateChallenge(progress.id, letter, answer, mode);
+
+    // Update streak and activity
+    const updatedProgress = this.updateStreakAndActivity(progress);
+
+    await db.updateUserProgress(
+      userId,
+      persistenceMapper.userProgress.toPersistence(updatedProgress)
+    );
+
+    this.updateChallenge(progress.id, letter, answer, mode);
   }
 
   async updateChallenge(
@@ -169,66 +177,6 @@ export class ProgressService {
     }
 
     return letter === answer;
-  }
-
-  async updateProgress(
-    userId: string,
-    exerciseMode: ExerciseMode,
-    letterKey: string,
-    isCorrect: boolean
-  ) {
-    const progress = await this.getUserProgress(userId);
-
-    if (!progress.exercises[exerciseMode]) {
-      progress.exercises[exerciseMode] = {
-        completedLetters: [],
-        letterStats: {},
-      };
-    }
-
-    const stats = this.updateLetterStats(progress.exercises[exerciseMode], letterKey, isCorrect);
-
-    // Check for mastery
-    if (
-      this.hasAchievedMastery(stats) &&
-      !progress.exercises[exerciseMode].completedLetters.includes(letterKey)
-    ) {
-      progress.exercises[exerciseMode].completedLetters.push(letterKey);
-    }
-
-    // Update streak and activity
-    const updatedProgress = this.updateStreakAndActivity(progress);
-
-    await db.updateUserProgress(
-      userId,
-      persistenceMapper.userProgress.toPersistence(updatedProgress)
-    );
-    return updatedProgress;
-  }
-
-  private updateLetterStats(
-    exerciseProgress: ExerciseProgress,
-    letterKey: string,
-    isCorrect: boolean
-  ) {
-    if (!exerciseProgress.letterStats[letterKey]) {
-      exerciseProgress.letterStats[letterKey] = {
-        attempts: 0,
-        correct: 0,
-        lastTenAttempts: [],
-      };
-    }
-
-    const stats = exerciseProgress.letterStats[letterKey];
-    stats.attempts++;
-    if (isCorrect) stats.correct++;
-    stats.lastTenAttempts = [...stats.lastTenAttempts.slice(-9), isCorrect];
-
-    return stats;
-  }
-
-  private hasAchievedMastery(stats: { lastTenAttempts: boolean[] }) {
-    return stats.lastTenAttempts.length >= 10 && stats.lastTenAttempts.every(attempt => attempt);
   }
 
   private updateStreakAndActivity(progress: UserProgress): UserProgress {
