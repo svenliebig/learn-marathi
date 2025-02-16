@@ -6,6 +6,7 @@ import { LetterCard } from '@/components/ui/letter-card';
 import { LetterCardSuccessCover } from '@/components/ui/letter-card-success-cover';
 import { Progress } from '@/components/ui/progress';
 import { AnswerService } from '@/lib/services/answer-service';
+import { audioService } from '@/lib/services/audio-service';
 import { LetterService } from '@/lib/services/letter-service';
 import { ExerciseState } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -29,16 +30,17 @@ export default function GetStarted() {
     // Initialize letters with audio on client side
     setExercise(prev => ({
       ...prev,
-      letters: LetterService.getRandomLettersWithAudio(8, 1),
+      letters: LetterService.getRandomLetters(8, 1).map(letter => ({
+        ...letter,
+        audio: audioService.getLetterAudio(letter.marathi)!,
+      })),
     }));
   }, []);
 
   const [showStats, setShowStats] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const answerService = useRef<AnswerService>(
-    new AnswerService('marathi-to-latin', 1)
-  );
+  const answerService = useRef<AnswerService>(new AnswerService('marathi-to-latin', 1));
 
   const handleAnswer = (answer: string) => {
     if (isAnimating) return;
@@ -95,7 +97,10 @@ export default function GetStarted() {
           setExercise({
             ...exercise,
             currentIndex: 0,
-            letters: LetterService.getRandomLettersWithAudio(8, 1),
+            letters: LetterService.getRandomLetters(8, 1).map(letter => ({
+              ...letter,
+              audio: audioService.getLetterAudio(letter.marathi)!,
+            })),
             score: 0,
             mistakes: 0,
             history: [],
@@ -108,14 +113,10 @@ export default function GetStarted() {
   }
 
   const displayLetter =
-    exercise.mode === 'marathi-to-latin'
-      ? currentLetter.marathi
-      : currentLetter.latin;
+    exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin;
 
   const correctAnswer =
-    exercise.mode === 'marathi-to-latin'
-      ? currentLetter.latin
-      : currentLetter.marathi;
+    exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi;
 
   const isCorrect = correctAnswer === selectedAnswer;
 
@@ -128,10 +129,7 @@ export default function GetStarted() {
               ? 'Identify the Marathi Letter'
               : 'Write in Marathi'}
           </h1>
-          <Progress
-            value={(exercise.currentIndex / exercise.size) * 100}
-            className="h-2"
-          />
+          <Progress value={(exercise.currentIndex / exercise.size) * 100} className="h-2" />
         </div>
 
         <AnimatePresence mode="wait">

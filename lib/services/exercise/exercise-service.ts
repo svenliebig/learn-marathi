@@ -20,13 +20,7 @@ export class ExerciseService {
       };
     }
 
-    let letters: Letter[] = [];
-
-    if (module === 'marathi-to-latin') {
-      letters = LetterService.getRandomMarathiLetters(8, 1);
-    } else if (module === 'latin-to-marathi') {
-      letters = LetterService.getRandomLatinLetters(8, 1);
-    }
+    const letters = LetterService.getRandomLetters(8, 1);
 
     return {
       mode: module,
@@ -85,11 +79,7 @@ export class ExerciseService {
   }
 
   private getRandomLetters(amount: number, level: number, mode: ExerciseMode): Letter[] {
-    if (mode === 'marathi-to-latin') {
-      return LetterService.getRandomMarathiLetters(amount, level);
-    }
-
-    return LetterService.getRandomLatinLetters(amount, level);
+    return LetterService.getRandomLetters(amount, level);
   }
 
   private removeFlawless(

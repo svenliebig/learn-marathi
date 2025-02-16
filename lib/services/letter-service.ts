@@ -41,12 +41,7 @@ export class LetterService {
     return letter.marathi;
   }
 
-  public static getRandomLatinLetters(amount: number, difficulty: number = 3): Letter[] {
-    const letters = marathiAlphabet.filter(letter => letter.difficulty <= difficulty);
-    return letters.sort(() => Math.random() - 0.5).slice(0, amount);
-  }
-
-  public static getRandomMarathiLetters(amount: number, difficulty: number = 3): Letter[] {
+  public static getRandomLetters(amount: number, difficulty: number = 3): Letter[] {
     const letters = marathiAlphabet.filter(letter => letter.difficulty <= difficulty);
     return letters.sort(() => Math.random() - 0.5).slice(0, amount);
   }
