@@ -4,15 +4,12 @@ export interface MarathiLetter {
   difficulty: number;
 }
 
-export type ExerciseMode =
-  | 'marathi-to-latin'
-  | 'latin-to-marathi'
-  | 'translate';
+export type ExerciseMode = 'marathi-to-latin' | 'latin-to-marathi' | 'translate';
 export type ExerciseSize = 8 | 16;
 
 export interface ExerciseState {
   mode: ExerciseMode;
-  size: ExerciseSize;
+  size: number;
   currentIndex: number;
   letters: (MarathiLetter & { audio?: HTMLAudioElement })[];
   answers: string[];

@@ -1,38 +1,31 @@
 import { hash } from 'bcrypt';
-import { DatabaseInterface, User, UserProgress } from "./types";
+import { DatabaseInterface } from './types';
 
 import { createServerClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { Database } from './supabase';
+import { Database, Tables, TablesUpdate } from './supabase';
 
 export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
-  return createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+  return createServerClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
+  });
 };
 
 class SQLiteDatabase implements DatabaseInterface {
-  private db: SupabaseClient<Database, 'public', any> | null = null;
+  private db: ReturnType<typeof createClient> | null = null;
 
   private async getDb() {
     if (!this.db) {
@@ -41,7 +34,28 @@ class SQLiteDatabase implements DatabaseInterface {
     return this.db;
   }
 
-  async getUser(email: string): Promise<User | null> {
+  async addMistake(challengeId: number, answer: string): Promise<{ success: boolean; error: any }> {
+    const db = await this.getDb();
+    const { error } = await db.from('mistakes').insert({
+      challenge: challengeId,
+      answer,
+    });
+
+    if (error) {
+      console.error('Error adding mistake:', error);
+      return {
+        success: false,
+        error,
+      };
+    }
+
+    return {
+      success: true,
+      error,
+    };
+  }
+
+  async getUser(email: string): Promise<Tables<'users'> | null> {
     const db = await this.getDb();
     const {
       data: user,
@@ -58,18 +72,18 @@ class SQLiteDatabase implements DatabaseInterface {
           id: user.id,
           email: user.email,
           password: user.password,
-          createdAt: user.created_at,
+          created_at: user.created_at,
         }
       : null;
   }
 
-  async saveUser(user: User): Promise<void> {
+  async saveUser(user: Tables<'users'>): Promise<void> {
     const db = await this.getDb();
     const { error } = await db.from('users').insert({
       id: user.id,
       email: user.email,
       password: user.password,
-      created_at: user.createdAt,
+      created_at: user.created_at,
     });
 
     if (error) {
@@ -77,51 +91,39 @@ class SQLiteDatabase implements DatabaseInterface {
     }
   }
 
-  async getUserProgress(userId: string): Promise<UserProgress> {
+  async getUserProgress(userId: string): Promise<Tables<'user_progress'>> {
     const db = await this.getDb();
-    const {
-      data: progress,
-      error,
-      status,
-    } = await db
+    const { data: progress, error } = await db
       .from('user_progress')
       .select('*')
       .eq('user_id', userId)
       .single();
 
+    if (error) {
+      console.error('Error getting user progress:', error);
+    }
+
     if (!progress) {
-      return {
-        userId,
-        exercises: {},
-        streakDays: 0,
-      };
+      throw new Error('User progress not found');
     }
 
     return {
-      userId: progress.user_id,
-      exercises: JSON.parse(progress.exercises),
-      streakDays: progress.streak_days,
-      lastActivity: progress.last_activity,
-      totalPracticeTime: progress.total_practice_time,
-      achievements: progress.achievements
-        ? JSON.parse(progress.achievements)
-        : [],
+      id: progress.id,
+      user_id: progress.user_id,
+      exercises: progress.exercises,
+      streak_days: progress.streak_days ?? 0,
+      last_activity: progress.last_activity ?? null,
     };
   }
 
-  async updateUserProgress(
-    userId: string,
-    progress: UserProgress
-  ): Promise<void> {
+  async updateUserProgress(userId: string, progress: TablesUpdate<'user_progress'>): Promise<void> {
     const db = await this.getDb();
     const { error, status, statusText } = await db
       .from('user_progress')
       .update({
-        exercises: JSON.stringify(progress.exercises),
-        streak_days: progress.streakDays,
-        last_activity: progress.lastActivity,
-        total_practice_time: progress.totalPracticeTime,
-        achievements: JSON.stringify(progress.achievements),
+        exercises: progress.exercises,
+        streak_days: progress.streak_days,
+        last_activity: progress.last_activity,
       })
       .eq('user_id', userId);
 
@@ -130,25 +132,46 @@ class SQLiteDatabase implements DatabaseInterface {
     }
   }
 
+  async updateChallenge(
+    userProgressId: number,
+    challenge: TablesUpdate<'challenges'>
+  ): Promise<Tables<'challenges'>> {
+    const db = await this.getDb();
+    const { error, data } = await db
+      .from('challenges')
+      .update({
+        attempts: challenge.attempts,
+        letter: challenge.letter,
+      })
+      .eq('user_progress_id', userProgressId)
+      .eq('letter', challenge.letter!)
+      .single();
+
+    if (error) {
+      console.error('Error updating challenge:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
   // Helper methods for auth
-  async createUser(
-    email: string,
-    password: string
-  ): Promise<{ id: string; email: string }> {
+  async createUser(email: string, password: string): Promise<{ id: string; email: string }> {
     const hashedPassword = await hash(password, 10);
     const id = crypto.randomUUID();
-    const user: User = {
+    const user: Tables<'users'> = {
       id,
       email,
       password: hashedPassword,
-      createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
     await this.saveUser(user);
-    await this.updateUserProgress(id, {
-      userId: id,
-      exercises: {},
-      streakDays: 0,
+    await this.updateUserProgress(user.id, {
+      exercises: '{}',
+      streak_days: 0,
+      last_activity: null,
+      user_id: user.id,
     });
 
     return { id, email };

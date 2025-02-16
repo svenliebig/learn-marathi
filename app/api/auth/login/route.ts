@@ -8,16 +8,14 @@ export async function POST(request: Request) {
     const result = await authService.login(email, password);
 
     if (!result) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     cookies().set('auth-token', result.token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
+      path: '/',
       maxAge: 60 * 60 * 24, // 24 hours
     });
 

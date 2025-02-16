@@ -1,9 +1,11 @@
+import { Tables } from './supabase';
+
 // Database Interface
 export interface DatabaseInterface {
-  getUser(email: string): Promise<User | null>;
-  saveUser(user: User): Promise<void>;
-  updateUserProgress(userId: string, progress: UserProgress): Promise<void>;
-  getUserProgress(userId: string): Promise<UserProgress>;
+  getUser(email: string): Promise<Tables<'users'> | null>;
+  saveUser(user: Tables<'users'>): Promise<void>;
+  updateUserProgress(userId: string, progress: Tables<'user_progress'>): Promise<void>;
+  getUserProgress(userId: string): Promise<Tables<'user_progress'>>;
 }
 
 export interface User {
@@ -15,30 +17,6 @@ export interface User {
    */
   password: string;
   createdAt: string;
-}
-
-export interface UserProgress {
-  userId: string;
-  exercises: {
-    [exerciseId: string]: ExerciseProgress;
-  };
-  streakDays?: number;
-  lastActivity?: string;
-  totalPracticeTime?: number;
-  achievements?: Achievement[];
-}
-
-export interface ExerciseProgress {
-  completedLetters: string[];
-  letterStats: {
-    [letter: string]: {
-      attempts: number;
-      correct: number;
-      lastTenAttempts: boolean[];
-      bestStreak?: number;
-      lastPracticed?: string;
-    };
-  };
 }
 
 export interface Achievement {

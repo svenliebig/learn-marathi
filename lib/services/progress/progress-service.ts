@@ -1,11 +1,12 @@
 import { db } from '@/lib/persistence/db';
-import { ExerciseProgress, UserProgress } from '@/lib/persistence/types';
+import { persistenceMapper } from '@/lib/persistence/mapper';
+import { ExerciseMode } from '@/lib/types';
 import { moduleService } from '../modules/module-service';
-import { DashboardProgress, MasteryLevel } from './types';
+import { DashboardProgress, ExerciseProgress, MasteryLevel, UserProgress } from './types';
 
 export class ProgressService {
   async getUserProgress(userId: string): Promise<UserProgress> {
-    return await db.getUserProgress(userId);
+    return persistenceMapper.userProgress.toModel(await db.getUserProgress(userId));
   }
 
   public async getDashboardProgress(userId: string): Promise<DashboardProgress> {
@@ -31,8 +32,13 @@ export class ProgressService {
     };
   }
 
-  async updateProgress(userId: string, exerciseMode: string, letterKey: string, isCorrect: boolean) {
-    const progress = await db.getUserProgress(userId);
+  async updateProgress(
+    userId: string,
+    exerciseMode: ExerciseMode,
+    letterKey: string,
+    isCorrect: boolean
+  ) {
+    const progress = await this.getUserProgress(userId);
 
     if (!progress.exercises[exerciseMode]) {
       progress.exercises[exerciseMode] = {
@@ -44,18 +50,28 @@ export class ProgressService {
     const stats = this.updateLetterStats(progress.exercises[exerciseMode], letterKey, isCorrect);
 
     // Check for mastery
-    if (this.hasAchievedMastery(stats) && !progress.exercises[exerciseMode].completedLetters.includes(letterKey)) {
+    if (
+      this.hasAchievedMastery(stats) &&
+      !progress.exercises[exerciseMode].completedLetters.includes(letterKey)
+    ) {
       progress.exercises[exerciseMode].completedLetters.push(letterKey);
     }
 
     // Update streak and activity
     const updatedProgress = this.updateStreakAndActivity(progress);
 
-    await db.updateUserProgress(userId, updatedProgress);
+    await db.updateUserProgress(
+      userId,
+      persistenceMapper.userProgress.toPersistence(updatedProgress)
+    );
     return updatedProgress;
   }
 
-  private updateLetterStats(exerciseProgress: ExerciseProgress, letterKey: string, isCorrect: boolean) {
+  private updateLetterStats(
+    exerciseProgress: ExerciseProgress,
+    letterKey: string,
+    isCorrect: boolean
+  ) {
     if (!exerciseProgress.letterStats[letterKey]) {
       exerciseProgress.letterStats[letterKey] = {
         attempts: 0,
@@ -77,20 +93,29 @@ export class ProgressService {
   }
 
   private updateStreakAndActivity(progress: UserProgress): UserProgress {
+    if (!progress.lastActivity) {
+      progress.lastActivity = new Date();
+      progress.streak = 1;
+      return progress;
+    }
+
     const today = new Date().toISOString().split('T')[0];
 
-    if (progress.lastActivity !== today) {
+    if (progress.lastActivity.toISOString().split('T')[0] !== today) {
       const lastDate = progress.lastActivity ? new Date(progress.lastActivity) : null;
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      if (lastDate && lastDate.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
-        progress.streakDays = (progress.streakDays || 0) + 1;
+      if (
+        lastDate &&
+        lastDate.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]
+      ) {
+        progress.streak = (progress.streak || 0) + 1;
       } else if (!lastDate || lastDate.toISOString().split('T')[0] !== today) {
-        progress.streakDays = 1;
+        progress.streak = 1;
       }
 
-      progress.lastActivity = today;
+      progress.lastActivity = new Date();
     }
 
     return progress;
@@ -113,19 +138,24 @@ export class ProgressService {
   }
 
   private calculateStreak(progress: UserProgress): number {
+    if (!progress.lastActivity) return 0;
+
+    const lastActivity = new Date(progress.lastActivity);
     const today = new Date().toISOString().split('T')[0];
 
-    if (progress.lastActivity !== today) {
-      const lastDate = progress.lastActivity ? new Date(progress.lastActivity) : null;
+    if (lastActivity.toISOString().split('T')[0] !== today) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      if (!lastDate || lastDate.toISOString().split('T')[0] !== yesterday.toISOString().split('T')[0]) {
+      if (
+        !lastActivity ||
+        lastActivity.toISOString().split('T')[0] !== yesterday.toISOString().split('T')[0]
+      ) {
         return 0;
       }
     }
 
-    return progress.streakDays || 0;
+    return progress.streak || 0;
   }
 
   private calculateMasteryLevel(progress: UserProgress): MasteryLevel {
@@ -151,7 +181,10 @@ export class ProgressService {
   }
 
   private calculateOverallProgress(progress: UserProgress): number {
-    const totalLetters = Object.values(progress.exercises).reduce((acc, ex) => acc + ex.completedLetters.length, 0);
+    const totalLetters = Object.values(progress.exercises).reduce(
+      (acc, ex) => acc + ex.completedLetters.length,
+      0
+    );
     return (totalLetters / 100) * 100;
   }
 }

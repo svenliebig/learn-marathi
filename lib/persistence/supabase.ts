@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   graphql_public: {
@@ -34,36 +28,94 @@ export type Database = {
   };
   public: {
     Tables: {
+      challenges: {
+        Row: {
+          attempts: number | null;
+          id: number;
+          letter: string;
+          module_id: string;
+          user_progress_id: number;
+        };
+        Insert: {
+          attempts?: number | null;
+          id?: number;
+          letter?: string;
+          module_id: string;
+          user_progress_id: number;
+        };
+        Update: {
+          attempts?: number | null;
+          id?: number;
+          letter?: string;
+          module_id?: string;
+          user_progress_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'challenges_user_progress_id_fkey';
+            columns: ['user_progress_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_progress';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      mistakes: {
+        Row: {
+          answer: string;
+          challenge: number;
+          created_at: string;
+          id: number;
+        };
+        Insert: {
+          answer: string;
+          challenge: number;
+          created_at?: string;
+          id?: number;
+        };
+        Update: {
+          answer?: string;
+          challenge?: number;
+          created_at?: string;
+          id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'mistakes_challenge_fkey';
+            columns: ['challenge'];
+            isOneToOne: false;
+            referencedRelation: 'challenges';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       user_progress: {
         Row: {
-          achievements: string | null;
           exercises: string;
+          id: number;
           last_activity: string | null;
           streak_days: number | null;
-          total_practice_time: number | null;
           user_id: string;
         };
         Insert: {
-          achievements?: string | null;
           exercises: string;
+          id?: number;
           last_activity?: string | null;
           streak_days?: number | null;
-          total_practice_time?: number | null;
           user_id: string;
         };
         Update: {
-          achievements?: string | null;
           exercises?: string;
+          id?: number;
           last_activity?: string | null;
           streak_days?: number | null;
-          total_practice_time?: number | null;
           user_id?: string;
         };
         Relationships: [
           {
             foreignKeyName: 'user_progress_user_id_fkey';
             columns: ['user_id'];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
@@ -123,10 +175,8 @@ export type Tables<
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] &
-        PublicSchema['Views'])
-    ? (PublicSchema['Tables'] &
-        PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+    ? (PublicSchema['Tables'] & PublicSchema['Views'])[PublicTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -134,9 +184,7 @@ export type Tables<
     : never;
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
@@ -155,9 +203,7 @@ export type TablesInsert<
     : never;
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
     : never = never,
@@ -176,9 +222,7 @@ export type TablesUpdate<
     : never;
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema['Enums']
-    | { schema: keyof Database },
+  PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
     : never = never,

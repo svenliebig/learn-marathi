@@ -1,31 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { authService } from '@/lib/services/auth-service';
+import { getUserId } from '@/lib/services/auth/actions';
 import { progressService } from '@/lib/services/progress/progress-service';
-import { DashboardProgress } from '@/lib/services/progress/types';
 import { ArrowRight, BookOpen, Clock, Star, Target, Trophy } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
-async function getDashboardProgress(token?: string): Promise<DashboardProgress | null> {
-  if (!token) return null;
-
-  try {
-    const payload = await authService.verifyToken(token);
-    if (!payload) return null;
-
-    const userId = payload.userId;
-    return await progressService.getDashboardProgress(userId);
-  } catch (error) {
-    console.error('Failed to load progress:', error);
-    return null;
-  }
-}
-
 export default async function Dashboard() {
   const token = cookies().get('auth-token');
-  const progress = await getDashboardProgress(token?.value);
+  const userId = await getUserId(token?.value);
+  const progress = await progressService.getDashboardProgress(userId);
 
   if (!progress) {
     return <div>No progress found.</div>;
