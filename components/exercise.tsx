@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import { AnswerService } from '@/lib/services/answer-service';
 import { audioService } from '@/lib/services/audio-service';
 import { createExercise } from '@/lib/services/exercise/actions';
+import { Exercise as ExerciseType } from '@/lib/services/exercise/types';
 import { Letter } from '@/lib/services/letter-service';
-import { updateProgress } from '@/lib/services/progress/actions';
+import { updateChallengeByUserId, updateProgress } from '@/lib/services/progress/actions';
 import { ExerciseState } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'framer-motion';
@@ -23,7 +24,7 @@ export default function Exercise({
   exercise: createdExercise,
 }: {
   userId: string;
-  exercise: any;
+  exercise: ExerciseType;
 }) {
   const router = useRouter();
 
@@ -55,6 +56,7 @@ export default function Exercise({
     const correctAnswer =
       exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi;
     const isCorrect = answer === correctAnswer;
+
     setIsAnimating(true);
     setSelectedAnswer(answer);
 
@@ -64,6 +66,7 @@ export default function Exercise({
     const letterKey =
       exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin;
 
+    await updateChallengeByUserId(userId, letterKey, answer, exercise.mode);
     await updateProgress(userId, exercise.mode, letterKey, isCorrect);
 
     setExercise(prev => ({
@@ -107,7 +110,10 @@ export default function Exercise({
             ...prev,
             currentIndex: 0,
             score: 0,
-            letters: newExercise.letters,
+            letters: newExercise.letters.map((l: Letter) => ({
+              ...l,
+              audio: audioService.getLetterAudio(l.marathi)!,
+            })),
             mistakes: 0,
             history: [],
           }));

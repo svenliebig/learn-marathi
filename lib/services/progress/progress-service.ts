@@ -1,6 +1,7 @@
 import { db } from '@/lib/persistence/db';
 import { persistenceMapper } from '@/lib/persistence/mapper';
 import { ExerciseMode } from '@/lib/types';
+import { LetterService } from '../letter-service';
 import { moduleService } from '../modules/module-service';
 import { DashboardProgress, ExerciseProgress, MasteryLevel, UserProgress } from './types';
 
@@ -30,6 +31,66 @@ export class ProgressService {
         mastered: progress.exercises[module.id].completedLetters.length,
       })),
     };
+  }
+
+  async updateChallengeByUserId(
+    userId: string,
+    letter: string,
+    answer: string,
+    mode: ExerciseMode
+  ) {
+    const progress = await this.getUserProgress(userId);
+    return this.updateChallenge(progress.id, letter, answer, mode);
+  }
+
+  async updateChallenge(
+    userProgressId: number,
+    letter: string,
+    answer: string,
+    mode: ExerciseMode
+  ) {
+    console.log('[ProgressService] updateChallenge', {
+      userProgressId,
+      letter,
+      answer,
+      mode,
+    });
+
+    const correct = this.isCorrect(letter, answer, mode);
+
+    let challenge = await db.getChallenge(userProgressId, letter);
+
+    if (!challenge) {
+      challenge = await db.insertChallenge(userProgressId, {
+        module_id: mode,
+        letter,
+        attempts: 1,
+        user_progress_id: userProgressId,
+      });
+    } else {
+      challenge = await db.updateChallenge(userProgressId, {
+        ...challenge,
+        attempts: (challenge.attempts ?? 0) + 1,
+      });
+    }
+
+    if (!correct) {
+      await db.addMistake(challenge.id, answer);
+    }
+
+    return challenge;
+  }
+
+  private isCorrect(letter: string, answer: string, mode: ExerciseMode): boolean {
+    if (mode === 'marathi-to-latin') {
+      return LetterService.getLatinLetter(letter) === answer;
+    }
+
+    if (mode === 'latin-to-marathi') {
+      return LetterService.getMarathiLetter(letter) === answer;
+    }
+
+    return letter === answer;
   }
 
   async updateProgress(

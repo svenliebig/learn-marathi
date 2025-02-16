@@ -1,9 +1,9 @@
 import { hash } from 'bcrypt';
-import { DatabaseInterface } from './types';
+import { ChallengePersistence, DatabaseInterface } from './types';
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { Database, Tables, TablesUpdate } from './supabase';
+import { Database, Tables, TablesInsert, TablesUpdate } from './supabase';
 
 export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
   return createServerClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
@@ -24,7 +24,7 @@ export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
   });
 };
 
-class SQLiteDatabase implements DatabaseInterface {
+class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
   private db: ReturnType<typeof createClient> | null = null;
 
   private async getDb() {
@@ -35,6 +35,8 @@ class SQLiteDatabase implements DatabaseInterface {
   }
 
   async addMistake(challengeId: number, answer: string): Promise<{ success: boolean; error: any }> {
+    console.log('[DB] addMistake', { challengeId, answer });
+
     const db = await this.getDb();
     const { error } = await db.from('mistakes').insert({
       challenge: challengeId,
@@ -132,12 +134,46 @@ class SQLiteDatabase implements DatabaseInterface {
     }
   }
 
+  async insertChallenge(
+    userProgressId: number,
+    challenge: TablesInsert<'challenges'>
+  ): Promise<Tables<'challenges'>> {
+    console.log('[DB] inderChallenge', { userProgressId, challenge });
+
+    const db = await this.getDb();
+    const { error, data, status, statusText, count } = await db
+      .from('challenges')
+      .insert(challenge)
+      .select();
+
+    if (error) {
+      console.error('[DB] Error inserting challenge:', error);
+    }
+
+    console.log('[DB] Insert challenge response', { status, statusText, count });
+
+    if (!data) {
+      console.error('[DB] Challenge not found');
+      throw new Error('Challenge not found');
+    }
+
+    if (data.length > 1) {
+      console.error('[DB] Multiple challenges found');
+      throw new Error('Multiple challenges found');
+    }
+
+    console.log('[DB] Challenge inserted', data[0]);
+    return data[0];
+  }
+
   async updateChallenge(
     userProgressId: number,
     challenge: TablesUpdate<'challenges'>
   ): Promise<Tables<'challenges'>> {
+    console.log('[DB] updateChallenge', { userProgressId, challenge });
+
     const db = await this.getDb();
-    const { error, data } = await db
+    const { error, data, status, statusText, count } = await db
       .from('challenges')
       .update({
         attempts: challenge.attempts,
@@ -145,11 +181,43 @@ class SQLiteDatabase implements DatabaseInterface {
       })
       .eq('user_progress_id', userProgressId)
       .eq('letter', challenge.letter!)
-      .single();
+      .select();
 
     if (error) {
-      console.error('Error updating challenge:', error);
+      console.error('[DB] Error updating challenge:', error);
       throw error;
+    }
+
+    console.log('[DB] Update challenge response', { status, statusText, count });
+
+    if (!data) {
+      console.error('[DB] Challenge not found');
+      throw new Error('Challenge not found');
+    }
+
+    if (data.length > 1) {
+      console.error('[DB] Multiple challenges found');
+      throw new Error('Multiple challenges found');
+    }
+
+    console.log('[DB] Challenge updated', data[0]);
+    return data[0];
+  }
+
+  async getChallenge(userProgressId: number, letter: string): Promise<Tables<'challenges'> | null> {
+    console.log('[DB] getChallenge', { userProgressId, letter });
+
+    const db = await this.getDb();
+
+    const { data, error } = await db
+      .from('challenges')
+      .select('*')
+      .eq('user_progress_id', userProgressId)
+      .eq('letter', letter)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[DB] Error getting challenge:', error);
     }
 
     return data;

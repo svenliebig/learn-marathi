@@ -17,6 +17,16 @@ export class LetterService {
     return letter.latin;
   }
 
+  public static getMarathiLetter(latinLetter: string): string {
+    const letter = marathiAlphabet.find(letter => letter.latin === latinLetter);
+
+    if (!letter) {
+      throw new Error(`Letter ${latinLetter} not found in alphabet`);
+    }
+
+    return letter.marathi;
+  }
+
   public static getRandomLatinLetters(amount: number, difficulty: number = 3): Letter[] {
     const letters = marathiAlphabet.filter(letter => letter.difficulty <= difficulty);
     return letters.sort(() => Math.random() - 0.5).slice(0, amount);
