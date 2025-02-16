@@ -28,20 +28,27 @@ export default function Exercise({
 }) {
   const router = useRouter();
 
-  const [exercise, setExercise] = useState<ExerciseState>({
-    mode: createdExercise.mode,
-    size: createdExercise.size,
-    currentIndex: 0,
-    letters: createdExercise.letters.map((l: Letter) => ({
-      ...l,
-      audio: audioService.getLetterAudio(l.marathi)!,
-    })),
-    answers: [],
-    correctAnswer: '',
-    score: 0,
-    mistakes: 0,
-    history: [],
-  });
+  const [exercise, setExercise] = useState<ExerciseState>(
+    useMemo(
+      () => ({
+        mode: createdExercise.mode,
+        size: createdExercise.size,
+        currentIndex: 0,
+        letters: createdExercise.letters.map((l: Letter) => {
+          return {
+            ...l,
+            audio: audioService.getLetterAudio(l.marathi)!,
+          };
+        }),
+        answers: [],
+        correctAnswer: '',
+        score: 0,
+        mistakes: 0,
+        history: [],
+      }),
+      []
+    )
+  );
 
   const [showStats, setShowStats] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
