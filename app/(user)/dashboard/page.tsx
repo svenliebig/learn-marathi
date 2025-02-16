@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CommonMistakes } from '@/components/ui/common-mistakes';
 import { Progress } from '@/components/ui/progress';
 import { getUserId } from '@/lib/services/auth/actions';
 import { progressService } from '@/lib/services/progress/progress-service';
@@ -11,15 +12,16 @@ export default async function Dashboard() {
   const token = cookies().get('auth-token');
   const userId = await getUserId(token?.value);
   const progress = await progressService.getDashboardProgress(userId);
+  const fullProgress = await progressService.getFullUserProgress(userId);
 
-  if (!progress) {
+  if (!progress || !fullProgress) {
     return <div>No progress found.</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col max-w-4xl mx-auto gap-6">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Your Learning Dashboard</h1>
           <Link href="/learning">
             <Button className="gap-2">
@@ -29,7 +31,7 @@ export default async function Dashboard() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-6">
             <div className="flex items-center gap-4">
               <Star className="w-8 h-8 text-yellow-500" />
@@ -61,14 +63,16 @@ export default async function Dashboard() {
           </Card>
         </div>
 
-        {/* Overall Progress */}
-        <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Overall Progress</h2>
-          <Progress value={progress.overallProgress} className="mb-2" />
-          <p className="text-sm text-muted-foreground">
-            {progress.overallProgress}% of Marathi alphabet mastered
-          </p>
-        </Card>
+        <div className="grid gap-6">
+          {/* Overall Progress */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Overall Progress</h2>
+            <Progress value={progress.overallProgress} className="mb-2" />
+            <p className="text-sm text-muted-foreground">
+              {progress.overallProgress}% of Marathi alphabet mastered
+            </p>
+          </Card>
+        </div>
 
         {/* Exercise Cards */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -94,8 +98,11 @@ export default async function Dashboard() {
           ))}
         </div>
 
+        {/* Common Mistakes */}
+        <CommonMistakes challenges={fullProgress.challenges} />
+
         {/* Marathi Alphabet */}
-        <div className="grid md:grid-cols-3 gap-6 mt-8">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-6 md:col-span-1 col-span-3">
             <div className="flex items-start justify-between mb-4">
               <div>
