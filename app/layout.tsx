@@ -1,12 +1,12 @@
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Toaster } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils';
 import { Github } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
-
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -14,21 +14,22 @@ export const metadata: Metadata = {
   description: 'Learn Marathi with our interactive learning platform',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={cn(inter.className, 'relative')}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="absolute top-4 left-4 z-10">
+          <div className="absolute top-4 right-4 z-10">
+            <ThemeToggle />
+          </div>
+          {children}
+          <div className="pb-10" />
+          <div className="absolute bottom-4 left-4 z-10">
             <Link
               href="https://github.com/svenliebig/learn-marathi"
               target="_blank"
@@ -39,10 +40,6 @@ export default function RootLayout({
               <span className="sr-only">GitHub Profile</span>
             </Link>
           </div>
-          <div className="absolute top-4 right-4 z-10">
-            <ThemeToggle />
-          </div>
-          {children}
           <Toaster />
         </ThemeProvider>
       </body>
