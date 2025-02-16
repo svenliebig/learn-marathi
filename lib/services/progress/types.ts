@@ -10,6 +10,29 @@ export type UserProgress = {
   };
 };
 
+export type FullUserProgress = {
+  id: number;
+  userId: string;
+  lastActivity: Date | null;
+  streak: number;
+  challenges: Challenge[];
+};
+
+export type Challenge = {
+  id: number;
+  letter: string;
+  attempts: number;
+  flawless: number;
+  lastActivity: Date;
+  mistakes: Mistake[];
+};
+
+export type Mistake = {
+  id: number;
+  answer: string;
+  createdAt: Date;
+};
+
 export interface ExerciseProgress {
   completedLetters: string[];
   letterStats: {

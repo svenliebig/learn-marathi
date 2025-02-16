@@ -24,7 +24,7 @@ export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
   });
 };
 
-class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
+class SupebaseDatabase implements DatabaseInterface, ChallengePersistence {
   private db: ReturnType<typeof createClient> | null = null;
 
   private async getDb() {
@@ -118,6 +118,36 @@ class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
     };
   }
 
+  async getFullUserProgress(userId: string) {
+    console.log('[DB] getFullUserProgress', { userId });
+    const db = await this.getDb();
+    const { data, error } = await db
+      .from('user_progress')
+      .select(
+        `
+        *,
+        challenges(
+          *,
+          mistakes(*)
+        )
+      `
+      )
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error getting full user progress:', error);
+      throw error;
+    }
+
+    if (!data) {
+      console.error('User progress not found');
+      throw new Error('User progress not found');
+    }
+
+    return data;
+  }
+
   async updateUserProgress(userId: string, progress: TablesUpdate<'user_progress'>): Promise<void> {
     const db = await this.getDb();
     const { error, status, statusText } = await db
@@ -138,7 +168,7 @@ class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
     userProgressId: number,
     challenge: TablesInsert<'challenges'>
   ): Promise<Tables<'challenges'>> {
-    console.log('[DB] inderChallenge', { userProgressId, challenge });
+    console.log('[DB] insertChallenge', { userProgressId, challenge });
 
     const db = await this.getDb();
     const { error, data, status, statusText, count } = await db
@@ -178,6 +208,8 @@ class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
       .update({
         attempts: challenge.attempts,
         letter: challenge.letter,
+        flawless: challenge.flawless,
+        updated_at: challenge.updated_at,
       })
       .eq('user_progress_id', userProgressId)
       .eq('letter', challenge.letter!)
@@ -246,4 +278,4 @@ class SQLiteDatabase implements DatabaseInterface, ChallengePersistence {
   }
 }
 
-export const db = new SQLiteDatabase();
+export const db = new SupebaseDatabase();

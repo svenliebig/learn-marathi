@@ -1,4 +1,4 @@
-import { Tables, TablesUpdate } from './supabase';
+import { Tables, TablesInsert, TablesUpdate } from './supabase';
 
 // Database Interface
 export interface DatabaseInterface {
@@ -9,6 +9,11 @@ export interface DatabaseInterface {
 }
 
 export interface ChallengePersistence {
+  insertChallenge(
+    userProgressId: number,
+    challenge: TablesInsert<'challenges'>
+  ): Promise<Tables<'challenges'>>;
+
   updateChallenge(
     userProgressId: number,
     challenge: TablesUpdate<'challenges'>

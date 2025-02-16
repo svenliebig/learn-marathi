@@ -5,7 +5,9 @@ import { Exercise } from './types';
 
 export class ExerciseService {
   public async getExercise(userId: string, module: ExerciseMode): Promise<Exercise> {
-    const userProgress = await progressService.getUserProgress(userId);
+    const userProgress = await progressService.getFullUserProgress(userId);
+
+    console.log('[ExerciseService] userProgress', userProgress);
 
     let letters: Letter[] = [];
 

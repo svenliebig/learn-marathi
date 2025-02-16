@@ -3,11 +3,21 @@ import { persistenceMapper } from '@/lib/persistence/mapper';
 import { ExerciseMode } from '@/lib/types';
 import { LetterService } from '../letter-service';
 import { moduleService } from '../modules/module-service';
-import { DashboardProgress, ExerciseProgress, MasteryLevel, UserProgress } from './types';
+import {
+  DashboardProgress,
+  ExerciseProgress,
+  FullUserProgress,
+  MasteryLevel,
+  UserProgress,
+} from './types';
 
 export class ProgressService {
   async getUserProgress(userId: string): Promise<UserProgress> {
     return persistenceMapper.userProgress.toModel(await db.getUserProgress(userId));
+  }
+
+  async getFullUserProgress(userId: string): Promise<FullUserProgress> {
+    return persistenceMapper.userProgress.fullToModel(await db.getFullUserProgress(userId));
   }
 
   public async getDashboardProgress(userId: string): Promise<DashboardProgress> {
@@ -49,14 +59,14 @@ export class ProgressService {
     answer: string,
     mode: ExerciseMode
   ) {
+    const correct = this.isCorrect(letter, answer, mode);
     console.log('[ProgressService] updateChallenge', {
       userProgressId,
       letter,
       answer,
       mode,
+      correct,
     });
-
-    const correct = this.isCorrect(letter, answer, mode);
 
     let challenge = await db.getChallenge(userProgressId, letter);
 
@@ -66,11 +76,15 @@ export class ProgressService {
         letter,
         attempts: 1,
         user_progress_id: userProgressId,
+        flawless: correct ? 1 : 0,
+        updated_at: new Date().toISOString(),
       });
     } else {
       challenge = await db.updateChallenge(userProgressId, {
         ...challenge,
         attempts: (challenge.attempts ?? 0) + 1,
+        flawless: correct ? (challenge.flawless ?? 0) + 1 : 0,
+        updated_at: new Date().toISOString(),
       });
     }
 
