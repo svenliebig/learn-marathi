@@ -80,7 +80,9 @@ export default async function Dashboard() {
         <Card className="p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Overall Progress</h2>
           <Progress value={progress.overallProgress} className="mb-2" />
-          <p className="text-sm text-muted-foreground">{progress.overallProgress}% of Marathi alphabet mastered</p>
+          <p className="text-sm text-muted-foreground">
+            {progress.overallProgress}% of Marathi alphabet mastered
+          </p>
         </Card>
 
         {/* Exercise Cards */}

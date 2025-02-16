@@ -10,8 +10,8 @@ export default function Home() {
         <div className="container px-4 mx-auto text-center">
           <h1 className="text-6xl font-bold mb-6">Learn Marathi with Joy</h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Master the Marathi alphabet through interactive exercises and track
-            your progress with our innovative learning platform.
+            Master the Marathi alphabet through interactive exercises and track your progress with
+            our innovative learning platform.
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/get-started">
@@ -31,34 +31,27 @@ export default function Home() {
       {/* Features Section */}
       <section className="py-24 bg-background">
         <div className="container px-4 mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">
-            Why Choose Our Platform?
-          </h2>
+          <h2 className="text-4xl font-bold text-center mb-16">Why Choose Our Platform?</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="p-6 rounded-lg border bg-card">
               <BookOpen className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                Interactive Learning
-              </h3>
+              <h3 className="text-xl font-semibold mb-2">Interactive Learning</h3>
               <p className="text-muted-foreground">
-                Learn through engaging exercises with immediate feedback and
-                progress tracking.
+                Learn through engaging exercises with immediate feedback and progress tracking.
               </p>
             </div>
             <div className="p-6 rounded-lg border bg-card">
               <Trophy className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
               <p className="text-muted-foreground">
-                Monitor your learning journey with detailed statistics and
-                achievements.
+                Monitor your learning journey with detailed statistics and achievements.
               </p>
             </div>
             <div className="p-6 rounded-lg border bg-card">
               <Users className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">Community</h3>
               <p className="text-muted-foreground">
-                Join a community of learners and share your progress with
-                others.
+                Join a community of learners and share your progress with others.
               </p>
             </div>
           </div>
