@@ -1,5 +1,5 @@
 import { getTokenPayload } from '@/lib/context/auth/utils';
-import { progressService } from '@/lib/services/progress-service';
+import { progressService } from '@/lib/services/progress/progress-service';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {

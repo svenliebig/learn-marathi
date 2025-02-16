@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { marathiAlphabet } from '@/lib/marathi-data';
 import { UserProgress } from '@/lib/persistence/types';
 import { authService } from '@/lib/services/auth-service';
-import { progressService } from '@/lib/services/progress-service';
+import { progressService } from '@/lib/services/progress/progress-service';
 import { ArrowLeft } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';

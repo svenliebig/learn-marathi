@@ -18,33 +18,33 @@ export interface User {
 }
 
 export interface UserProgress {
-    userId: string;
-    exercises: {
-      [exerciseId: string]: ExerciseProgress;
+  userId: string;
+  exercises: {
+    [exerciseId: string]: ExerciseProgress;
+  };
+  streakDays?: number;
+  lastActivity?: string;
+  totalPracticeTime?: number;
+  achievements?: Achievement[];
+}
+
+export interface ExerciseProgress {
+  completedLetters: string[];
+  letterStats: {
+    [letter: string]: {
+      attempts: number;
+      correct: number;
+      lastTenAttempts: boolean[];
+      bestStreak?: number;
+      lastPracticed?: string;
     };
-    streakDays?: number;
-    lastActivity?: string;
-    totalPracticeTime?: number;
-    achievements?: Achievement[];
-  }
-  
-  export interface ExerciseProgress {
-    completedLetters: string[];
-    letterStats: {
-      [letter: string]: {
-        attempts: number;
-        correct: number;
-        lastTenAttempts: boolean[];
-        bestStreak?: number;
-        lastPracticed?: string;
-      };
-    };
-  }
-  
-  export interface Achievement {
-    id: string;
-    name: string;
-    description: string;
-    unlockedAt: string;
-    type: 'streak' | 'mastery' | 'accuracy' | 'speed';
-  }
+  };
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  unlockedAt: string;
+  type: 'streak' | 'mastery' | 'accuracy' | 'speed';
+}
