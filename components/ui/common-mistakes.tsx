@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LetterService } from '@/lib/services/letter-service';
 import { Challenge } from '@/lib/services/progress/types';
 import { cn } from '@/lib/utils';
@@ -79,27 +80,55 @@ export function CommonMistakes({ challenges, className }: CommonMistakesProps) {
             <div className="pl-4 border-l-2 border-muted">
               <p className="text-sm text-muted-foreground mb-2">Common confusions:</p>
               {pattern.commonMistakes.map(mistake => (
-                <div key={mistake.answer} className="flex items-center gap-2 mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{mistake.answer}</span>
-                      <span className="text-sm text-muted-foreground">
-                        ({Math.round(mistake.percentage)}% of attempts)
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary rounded-full h-2"
-                        style={{ width: `${mistake.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <Confusion
+                  key={mistake.answer}
+                  originalLetter={pattern.letter}
+                  answer={mistake.answer}
+                  percentage={mistake.percentage}
+                />
               ))}
             </div>
           </div>
         ))}
       </div>
     </Card>
+  );
+}
+
+function Confusion({
+  originalLetter,
+  answer,
+  percentage,
+}: {
+  originalLetter: string;
+  answer: string;
+  percentage: number;
+}) {
+  const letter = LetterService.getLetter(answer);
+  const oppositeLetter = letter.marathi === answer ? letter.latin : letter.marathi;
+  return (
+    <div key={answer} className="flex items-center gap-2 mb-2">
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{answer}</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm text-muted-foreground">({oppositeLetter})</span>
+              </TooltipTrigger>
+              <TooltipContent className="text-7xl font-bold">
+                {originalLetter} vs. {oppositeLetter}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <span className="text-sm text-muted-foreground">
+            ({Math.round(percentage)}% of attempts)
+          </span>
+        </div>
+        <div className="w-full bg-muted rounded-full h-2">
+          <div className="bg-primary rounded-full h-2" style={{ width: `${percentage}%` }} />
+        </div>
+      </div>
+    </div>
   );
 }
