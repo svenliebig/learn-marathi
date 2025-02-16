@@ -10,36 +10,46 @@ import { ArrowLeft } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
+const FLAWLESS_THRESHOLD = 10;
+
 export default async function MarathiAlphabet() {
   const token = cookies().get('auth-token');
   const userId = await getUserId(token?.value);
-  const progress = await progressService.getUserProgress(userId);
+  const progress = await progressService.getFullUserProgress(userId);
 
   const getLetterProgress = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    if (!progress?.exercises?.[mode]?.letterStats?.[letter]) return 0;
-    const stats = progress.exercises[mode].letterStats[letter];
-    const lastTenAttempts = stats.lastTenAttempts || [];
-    return (lastTenAttempts.filter(attempt => attempt).length / 10) * 100;
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
+
+    if (!challenge) return 0;
+    return challenge.flawless >= FLAWLESS_THRESHOLD
+      ? 100
+      : (challenge.flawless / FLAWLESS_THRESHOLD) * 100;
   };
 
   const isLetterMastered = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    return progress?.exercises?.[mode]?.completedLetters.includes(letter) || false;
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
+    return (challenge?.flawless || 0) >= FLAWLESS_THRESHOLD || false;
   };
 
   const vowels = marathiAlphabet.filter(letter => letter.type === 'vowel');
   const consonants = marathiAlphabet.filter(letter => letter.type === 'consonant');
 
+  const getLastAttempted = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
+    return challenge?.lastActivity;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col items-start gap-4 mb-8">
+          <h1 className="text-3xl font-bold">Marathi Alphabet</h1>
           <Link href="/dashboard">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Marathi Alphabet</h1>
         </div>
 
         <section className="mb-12">
@@ -77,7 +87,7 @@ export default async function MarathiAlphabet() {
                   }`}
                 />
                 {isLetterMastered(letter.marathi, 'marathi-to-latin') && (
-                  <p className="text-xs text-center text-green-600 mt-1">Learned</p>
+                  <p className="text-xs text-center text-green-600 mt-1">Mastered</p>
                 )}
               </Card>
             ))}
@@ -119,7 +129,7 @@ export default async function MarathiAlphabet() {
                   }`}
                 />
                 {isLetterMastered(letter.marathi, 'marathi-to-latin') && (
-                  <p className="text-xs text-center text-green-600 mt-1">Learned</p>
+                  <p className="text-xs text-center text-green-600 mt-1">Mastered</p>
                 )}
               </Card>
             ))}
