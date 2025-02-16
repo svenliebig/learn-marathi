@@ -37,6 +37,7 @@ const challenge = {
     return {
       id: data.id,
       letter: data.letter,
+      module: data.module_id,
       attempts: data.attempts ?? 0,
       flawless: data.flawless ?? 0,
       lastActivity: new Date(data.updated_at),

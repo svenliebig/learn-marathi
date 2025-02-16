@@ -21,6 +21,7 @@ export type FullUserProgress = {
 export type Challenge = {
   id: number;
   letter: string;
+  module: string;
   attempts: number;
   flawless: number;
   lastActivity: Date;

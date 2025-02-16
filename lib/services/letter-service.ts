@@ -7,6 +7,20 @@ export type Letter = {
 };
 
 export class LetterService {
+  public static getLetter(loi: string): Letter {
+    const letter = marathiAlphabet.find(letter => letter.marathi === loi || letter.latin === loi);
+
+    if (!letter) {
+      throw new Error(`Letter ${JSON.stringify(loi)} not found in alphabet`);
+    }
+
+    return {
+      marathi: letter.marathi,
+      latin: letter.latin,
+      difficulty: letter.difficulty,
+    };
+  }
+
   public static getLatinLetter(marathiLetter: string): string {
     const letter = marathiAlphabet.find(letter => letter.marathi === marathiLetter);
 
@@ -45,5 +59,29 @@ export class LetterService {
   public static getRandomMarathiLetter(difficulty: number = 3): string {
     const letters = marathiAlphabet.filter(letter => letter.difficulty <= difficulty);
     return letters[Math.floor(Math.random() * letters.length)].marathi;
+  }
+
+  /**
+   * Returns the easiest letters after filtering out the letters that needs to be excluded.
+   *
+   * If there are no letters left, it will return random letters of any difficulty.
+   */
+  public static *getEasiestLetters({ exclude }: { exclude: string[] }): Generator<Letter> {
+    const letters = marathiAlphabet.filter(
+      letter => !exclude.includes(letter.marathi) || !exclude.includes(letter.latin)
+    );
+
+    const shuffled = letters
+      .toSorted(() => Math.random() - 0.5)
+      .toSorted((a, b) => a.difficulty - b.difficulty);
+
+    for (const letter of shuffled) {
+      yield letter;
+    }
+
+    while (true) {
+      const letter = marathiAlphabet.toSorted(() => Math.random() - 0.5)[0];
+      yield letter;
+    }
   }
 }
