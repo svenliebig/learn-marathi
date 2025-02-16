@@ -185,7 +185,7 @@ export class ProgressService {
       (acc, ex) => acc + ex.completedLetters.length,
       0
     );
-    return (totalLetters / 100) * 100;
+    return Math.round((totalLetters / 100) * 100);
   }
 }
 
