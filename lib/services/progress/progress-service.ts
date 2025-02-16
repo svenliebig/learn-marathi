@@ -4,6 +4,7 @@ import { ExerciseMode } from '@/lib/types';
 import { LetterService } from '../letter-service';
 import { moduleService } from '../modules/module-service';
 import {
+  Challenge,
   DashboardProgress,
   ExerciseProgress,
   FullUserProgress,
@@ -21,7 +22,7 @@ export class ProgressService {
   }
 
   public async getDashboardProgress(userId: string): Promise<DashboardProgress> {
-    const progress = await this.getUserProgress(userId);
+    const progress = await this.getFullUserProgress(userId);
 
     const accuracy = this.calculateAccuracy(progress);
     const streak = this.calculateStreak(progress);
@@ -38,9 +39,71 @@ export class ProgressService {
       modules: modules.map(module => ({
         module,
         total: 48,
-        mastered: progress.exercises[module.id].completedLetters.length,
+        mastered: this.getMasteredLettersCount(progress.challenges, module.id),
       })),
     };
+  }
+
+  private getMasteredLettersCount(challenges: Challenge[], moduleId: string): number {
+    return challenges.filter(challenge => challenge.module === moduleId && challenge.flawless >= 10)
+      .length;
+  }
+
+  private calculateAccuracy(progress: FullUserProgress): number {
+    if (!progress.challenges.length) return 0;
+
+    const totalAttempts = progress.challenges.reduce(
+      (sum, challenge) => sum + challenge.attempts,
+      0
+    );
+    const totalFlawless = progress.challenges.reduce(
+      (sum, challenge) => sum + challenge.flawless,
+      0
+    );
+
+    return totalAttempts ? Math.round((totalFlawless / totalAttempts) * 100) : 0;
+  }
+
+  private calculateStreak(progress: FullUserProgress): number {
+    if (!progress.lastActivity) return 0;
+
+    const lastActivity = new Date(progress.lastActivity);
+    const today = new Date().toISOString().split('T')[0];
+
+    if (lastActivity.toISOString().split('T')[0] !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (
+        !lastActivity ||
+        lastActivity.toISOString().split('T')[0] !== yesterday.toISOString().split('T')[0]
+      ) {
+        return 0;
+      }
+    }
+
+    return progress.streak || 0;
+  }
+
+  private calculateMasteryLevel(progress: FullUserProgress): MasteryLevel {
+    const masteredLetters = progress.challenges.filter(challenge => challenge.flawless >= 5).length;
+    const totalPossibleLetters = 100; // This seems to be hardcoded in the original code
+
+    const ratio = masteredLetters / totalPossibleLetters;
+
+    if (ratio >= 0.9) return 'Master';
+    if (ratio >= 0.7) return 'Advanced';
+    if (ratio >= 0.5) return 'Intermediate';
+    if (ratio >= 0.3) return 'Beginner';
+
+    return 'Novice';
+  }
+
+  private calculateOverallProgress(progress: FullUserProgress): number {
+    const masteredLetters = progress.challenges.filter(
+      challenge => challenge.flawless >= 10
+    ).length;
+    return Math.round((masteredLetters / 100) * 100);
   }
 
   async updateChallengeByUserId(
@@ -80,10 +143,11 @@ export class ProgressService {
         updated_at: new Date().toISOString(),
       });
     } else {
+      const currentFlawless = challenge.flawless ?? 0;
       challenge = await db.updateChallenge(userProgressId, {
         ...challenge,
         attempts: (challenge.attempts ?? 0) + 1,
-        flawless: correct ? (challenge.flawless ?? 0) + 1 : 0,
+        flawless: correct ? Math.min(currentFlawless + 1, 10) : Math.max(currentFlawless - 1, 0),
         updated_at: new Date().toISOString(),
       });
     }
@@ -194,73 +258,6 @@ export class ProgressService {
     }
 
     return progress;
-  }
-
-  private calculateAccuracy(progress: UserProgress): number {
-    if (!progress?.exercises) return 0;
-
-    let totalAttempts = 0;
-    let totalCorrect = 0;
-
-    Object.values(progress.exercises).forEach(exercise => {
-      Object.values(exercise.letterStats).forEach(stats => {
-        totalAttempts += stats.attempts;
-        totalCorrect += stats.correct;
-      });
-    });
-
-    return totalAttempts ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-  }
-
-  private calculateStreak(progress: UserProgress): number {
-    if (!progress.lastActivity) return 0;
-
-    const lastActivity = new Date(progress.lastActivity);
-    const today = new Date().toISOString().split('T')[0];
-
-    if (lastActivity.toISOString().split('T')[0] !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (
-        !lastActivity ||
-        lastActivity.toISOString().split('T')[0] !== yesterday.toISOString().split('T')[0]
-      ) {
-        return 0;
-      }
-    }
-
-    return progress.streak || 0;
-  }
-
-  private calculateMasteryLevel(progress: UserProgress): MasteryLevel {
-    const completedLetters = Object.values(progress.exercises).reduce(
-      (acc, ex) => {
-        return {
-          completed: acc.completed + ex.completedLetters.length,
-          total: acc.total + 100,
-        };
-      },
-      { completed: 0, total: 0 }
-    );
-
-    if (completedLetters.completed / completedLetters.total >= 0.9) return 'Master';
-
-    if (completedLetters.completed / completedLetters.total >= 0.7) return 'Advanced';
-
-    if (completedLetters.completed / completedLetters.total >= 0.5) return 'Intermediate';
-
-    if (completedLetters.completed / completedLetters.total >= 0.3) return 'Beginner';
-
-    return 'Novice';
-  }
-
-  private calculateOverallProgress(progress: UserProgress): number {
-    const totalLetters = Object.values(progress.exercises).reduce(
-      (acc, ex) => acc + ex.completedLetters.length,
-      0
-    );
-    return Math.round((totalLetters / 100) * 100);
   }
 }
 
