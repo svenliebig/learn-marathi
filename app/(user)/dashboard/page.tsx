@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { marathiAlphabet } from '@/lib/marathi-data';
+import { UserProgress } from '@/lib/persistence/types';
 import { authService } from '@/lib/services/auth-service';
 import { progressService } from '@/lib/services/progress-service';
-import { UserProgress } from '@/lib/types';
 import {
   ArrowRight,
   BookOpen,
@@ -50,7 +50,7 @@ export default async function Dashboard() {
       0
     );
 
-    const targetLetters = exercises.length * 16; // Assuming 16 letters per exercise
+    const targetLetters = exercises.length * 8; // Assuming 16 letters per exercise
     return Math.round((totalLetters / targetLetters) * 100);
   };
 

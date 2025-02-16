@@ -1,5 +1,5 @@
-import { db } from '@/lib/db';
-import { ExerciseProgress, UserProgress } from '@/lib/types';
+import { db } from '@/lib/persistence/db';
+import { ExerciseProgress, UserProgress } from '@/lib/persistence/types';
 
 export class ProgressService {
   async getUserProgress(userId: string): Promise<UserProgress> {

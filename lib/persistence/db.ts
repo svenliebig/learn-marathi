@@ -1,5 +1,5 @@
 import { hash } from 'bcrypt';
-import { DatabaseInterface, User, UserProgress } from './types';
+import { DatabaseInterface, User, UserProgress } from "./types";
 
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';

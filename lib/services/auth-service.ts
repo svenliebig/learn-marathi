@@ -1,4 +1,4 @@
-import { db } from '@/lib/db';
+import { db } from '@/lib/persistence/db';
 import { compare } from 'bcrypt';
 import { SignJWT, jwtVerify } from 'jose';
 
