@@ -8,19 +8,9 @@ export class ExerciseService {
   public async getExercise(userId: string, module: ExerciseMode): Promise<Exercise> {
     const userProgress = await progressService.getFullUserProgress(userId);
 
-    const challenged = userProgress.challenges
-      .filter(challenge => challenge.module === module)
-      .sort((a, b) => a.lastActivity.getTime() - b.lastActivity.getTime());
+    const challenged = userProgress.challenges.filter(challenge => challenge.module === module);
 
-    if (challenged.length >= 8) {
-      return {
-        mode: module,
-        size: 8,
-        letters: challenged.slice(0, 8).map(challenge => LetterService.getLetter(challenge.letter)),
-      };
-    }
-
-    const letters = LetterService.getRandomLetters(8, 1);
+    const letters = this.getExerciseLetters(challenged, module);
 
     return {
       mode: module,
