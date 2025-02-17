@@ -63,7 +63,7 @@ export class LetterService {
    */
   public static *getEasiestLetters({ exclude }: { exclude: string[] }): Generator<Letter> {
     const letters = marathiAlphabet.filter(
-      letter => !exclude.includes(letter.marathi) || !exclude.includes(letter.latin)
+      letter => !exclude.includes(letter.marathi) && !exclude.includes(letter.latin)
     );
 
     const shuffled = letters

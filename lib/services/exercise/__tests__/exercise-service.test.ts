@@ -176,6 +176,45 @@ describe('ExerciseService', () => {
         ])
       );
     });
+
+    it('should add only letters that the user is not flawless yet', () => {
+      const challenges = Array.from({ length: marathiAlphabet.length - 8 }, (_, i) => {
+        return {
+          letter: marathiAlphabet[i].marathi,
+          flawless: 5,
+          lastActivity: new Date(),
+        };
+      });
+
+      // add oldest letters
+      Array.from({ length: 2 }, (_, i) => {
+        challenges.push({
+          letter: marathiAlphabet[marathiAlphabet.length - 8 + i].marathi,
+          flawless: 0,
+          lastActivity: subDays(new Date(), 2),
+        });
+      });
+
+      const expectedLetters = Array.from({ length: 6 }, (_, i) => {
+        return marathiAlphabet[marathiAlphabet.length - 6 + i].marathi;
+      });
+
+      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin');
+
+      expect(letters, 'oldest letters should be in the exercise').toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ marathi: challenges[challenges.length - 1].letter }),
+          expect.objectContaining({ marathi: challenges[challenges.length - 2].letter }),
+        ])
+      );
+
+      expectedLetters.forEach((letter, index) => {
+        expect(
+          letters,
+          `letter ${letter} (${LetterService.getLetter(letter).latin}, index: ${index}) should be in the exercise`
+        ).toEqual(expect.arrayContaining([expect.objectContaining({ marathi: letter })]));
+      });
+    });
   });
 });
 

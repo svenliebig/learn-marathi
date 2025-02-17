@@ -57,6 +57,11 @@ export class ExerciseService {
 
       while (nextLetters.length < 8) {
         const next = letterGenerator.next();
+
+        if (nextLetters.some(nextLetter => nextLetter.marathi === next.value.marathi)) {
+          continue;
+        }
+
         nextLetters.push({
           latin: next.value.latin,
           marathi: next.value.marathi,
