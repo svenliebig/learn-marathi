@@ -1,42 +1,43 @@
-'use client';
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { Volume2 } from 'lucide-react';
-import { useState } from 'react';
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Volume2 } from 'lucide-react'
+import { useState } from 'react'
 
 interface AudioButtonProps {
-  letter: string;
-  className?: string;
+  letter: string
+  className?: string
 }
 
 export function AudioButton({ letter, className }: AudioButtonProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const playAudio = async () => {
-    if (isPlaying) return;
+    if (isPlaying) return
 
     try {
-      setIsPlaying(true);
+      setIsPlaying(true)
       // You'll need to replace this with your actual audio file URL pattern
-      const audio = new Audio(`/audio/marathi/${letter}.mp3`);
-      await audio.play();
-      audio.onended = () => setIsPlaying(false);
+      const audio = new Audio(`/audio/marathi/${letter}.mp3`)
+      await audio.play()
+      audio.onended = () => setIsPlaying(false)
     } catch (error) {
-      console.error('Failed to play audio:', error);
-      setIsPlaying(false);
+      console.error('Failed to play audio:', error)
+      setIsPlaying(false)
     }
-  };
+  }
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      className={className}
+      className={cn(className, isPlaying && 'opacity-50')}
       onClick={playAudio}
-      disabled={isPlaying}
+      aria-disabled={isPlaying}
     >
       <Volume2 className={`h-4 w-4 ${isPlaying ? 'text-primary' : ''}`} />
       <span className="sr-only">Play pronunciation</span>
     </Button>
-  );
+  )
 }
