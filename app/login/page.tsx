@@ -1,45 +1,45 @@
-'use client';
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LoadingButton } from '@/components/ui/loading-button'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function Login() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Login failed');
+        const data = await res.json()
+        throw new Error(data.error || 'Login failed')
       }
 
-      router.push('/dashboard');
-      router.refresh(); // Refresh server components
+      router.push('/dashboard')
+      router.refresh() // Refresh server components
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-primary/10 px-4">
@@ -75,9 +75,9 @@ export default function Login() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <LoadingButton type="submit" className="w-full" disabled={isLoading} loading={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
-          </Button>
+          </LoadingButton>
         </form>
 
         <div className="mt-6 text-center">
@@ -90,5 +90,5 @@ export default function Login() {
         </div>
       </Card>
     </div>
-  );
+  )
 }
