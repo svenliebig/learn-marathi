@@ -1,6 +1,6 @@
-import { Challenge, FullUserProgress, Mistake, UserProgress } from '../services/progress/types';
-import { db } from './db';
-import { Tables } from './supabase';
+import { Challenge, Mistake, ResolvedUserProgress, UserProgress } from '../services/progress/types'
+import { db } from './db'
+import { Tables } from './supabase'
 
 const userProgress = {
   toModel: (data: Tables<'user_progress'>): UserProgress => {
@@ -9,16 +9,16 @@ const userProgress = {
       userId: data.user_id,
       lastActivity: data.last_activity ? new Date(data.last_activity) : null,
       streak: data.streak_days ?? 0,
-    };
+    }
   },
-  fullToModel: (data: Awaited<ReturnType<typeof db.getFullUserProgress>>): FullUserProgress => {
+  fullToModel: (data: Awaited<ReturnType<typeof db.getFullUserProgress>>): ResolvedUserProgress => {
     return {
       id: data.id,
       userId: data.user_id,
       lastActivity: data.last_activity ? new Date(data.last_activity) : null,
       streak: data.streak_days ?? 0,
       challenges: data.challenges.map(challenge.toModel),
-    };
+    }
   },
   toPersistence: (model: UserProgress): Tables<'user_progress'> => {
     return {
@@ -26,9 +26,9 @@ const userProgress = {
       user_id: model.userId,
       last_activity: model.lastActivity?.toISOString() ?? null,
       streak_days: model.streak,
-    };
+    }
   },
-};
+}
 
 const challenge = {
   toModel: (data: Tables<'challenges'> & { mistakes?: Tables<'mistakes'>[] }): Challenge => {
@@ -40,9 +40,9 @@ const challenge = {
       flawless: data.flawless ?? 0,
       lastActivity: new Date(data.updated_at),
       mistakes: data.mistakes?.map(mistake.toModel) ?? [],
-    };
+    }
   },
-};
+}
 
 const mistake = {
   toModel: (data: Tables<'mistakes'>): Mistake => {
@@ -50,12 +50,12 @@ const mistake = {
       id: data.id,
       answer: data.answer,
       createdAt: data.created_at ? new Date(data.created_at) : new Date(),
-    };
+    }
   },
-};
+}
 
 export const persistenceMapper = {
   userProgress,
   challenge,
   mistake,
-};
+}

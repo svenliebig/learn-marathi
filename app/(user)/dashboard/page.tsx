@@ -15,7 +15,7 @@ export default async function Dashboard() {
   const token = cookies().get('auth-token')
   const userId = await getUserId(token?.value)
   const progress = await progressService.getDashboardProgress(userId)
-  const fullProgress = await progressService.getFullUserProgress(userId)
+  const fullProgress = await progressService.getResolvedUserProgress(userId)
 
   if (!progress || !fullProgress) {
     return <div>No progress found.</div>

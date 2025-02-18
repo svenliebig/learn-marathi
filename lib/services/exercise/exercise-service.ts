@@ -1,22 +1,28 @@
-import { ExerciseMode } from '../../types';
-import { Letter, LetterService } from '../letter-service';
-import { progressService } from '../progress/progress-service';
-import { Challenge } from '../progress/types';
-import { Exercise } from './types';
+import { ExerciseMode } from '../../types'
+import { Letter, LetterService } from '../letter-service'
+import { progressService } from '../progress/progress-service'
+import { Challenge, ResolvedUserProgressService } from '../progress/types'
+import { Exercise } from './types'
 
 export class ExerciseService {
+  private readonly progressService: ResolvedUserProgressService
+
+  constructor(progressService: ResolvedUserProgressService) {
+    this.progressService = progressService
+  }
+
   public async getExercise(userId: string, module: ExerciseMode): Promise<Exercise> {
-    const userProgress = await progressService.getFullUserProgress(userId);
+    const userProgress = await this.progressService.getResolvedUserProgress(userId)
 
-    const challenged = userProgress.challenges.filter(challenge => challenge.module === module);
+    const challenged = userProgress.challenges.filter(challenge => challenge.module === module)
 
-    const letters = this.getExerciseLetters(challenged, module);
+    const letters = this.getExerciseLetters(challenged, module)
 
     return {
       mode: module,
       size: 8,
       letters,
-    };
+    }
   }
 
   /**
@@ -36,65 +42,65 @@ export class ExerciseService {
     mode: ExerciseMode
   ): Letter[] {
     if (challenges.length <= 14) {
-      return this.getRandomLetters(8, 1, mode);
+      return this.getRandomLetters(8, 1, mode)
     }
 
     const sorted = challenges.toSorted(
       (a, b) => a.lastActivity.getTime() - b.lastActivity.getTime()
-    );
+    )
 
-    const lastTwo = sorted.splice(0, OFFSET);
-    const flawed = this.removeFlawless(sorted);
+    const lastTwo = sorted.splice(0, OFFSET)
+    const flawed = this.removeFlawless(sorted)
 
     const nextLetters = [...flawed.slice(0, 8 - lastTwo.length), ...lastTwo].map(challenge =>
       LetterService.getLetter(challenge.letter)
-    );
+    )
 
     if (nextLetters.length < 8) {
       let letterGenerator = LetterService.getEasiestLetters({
         exclude: challenges.map(challenge => challenge.letter),
-      });
+      })
 
       while (nextLetters.length < 8) {
-        const next = letterGenerator.next();
+        const next = letterGenerator.next()
 
         if (nextLetters.some(nextLetter => nextLetter.marathi === next.value.marathi)) {
-          continue;
+          continue
         }
 
         nextLetters.push({
           latin: next.value.latin,
           marathi: next.value.marathi,
           difficulty: next.value.difficulty,
-        });
+        })
       }
     }
 
-    return shuffle(nextLetters);
+    return shuffle(nextLetters)
   }
 
   private getRandomLetters(amount: number, level: number, mode: ExerciseMode): Letter[] {
-    return LetterService.getRandomLetters(amount, level);
+    return LetterService.getRandomLetters(amount, level)
   }
 
   private removeFlawless(
     challenges: Array<Omit<Challenge, 'module' | 'mistakes' | 'id' | 'attempts'>>
   ) {
-    return challenges.filter(challenge => challenge.flawless < FLAWLESS_THRESHOLD);
+    return challenges.filter(challenge => challenge.flawless < FLAWLESS_THRESHOLD)
   }
 }
 
 function shuffle(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
   }
-  return array;
+  return array
 }
 
-export const exerciseService = new ExerciseService();
+export const exerciseService = new ExerciseService(progressService)
 
 /** The amount of oldest challenges that are definitely included in the exercise */
-const OFFSET = 2;
+const OFFSET = 2
 /** The amount of flawless challenges that triggers new letters */
-const FLAWLESS_THRESHOLD = 5;
+const FLAWLESS_THRESHOLD = 5

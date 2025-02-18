@@ -1,43 +1,43 @@
-import { AudioButton } from '@/components/ui/audio-button';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { CopyButton } from '@/components/ui/copy-button';
-import { Progress } from '@/components/ui/progress';
-import { marathiAlphabet } from '@/lib/marathi-data';
-import { getUserId } from '@/lib/services/auth/actions';
-import { progressService } from '@/lib/services/progress/progress-service';
-import { ArrowLeft } from 'lucide-react';
-import { cookies } from 'next/headers';
-import Link from 'next/link';
+import { AudioButton } from '@/components/ui/audio-button'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { CopyButton } from '@/components/ui/copy-button'
+import { Progress } from '@/components/ui/progress'
+import { marathiAlphabet } from '@/lib/marathi-data'
+import { getUserId } from '@/lib/services/auth/actions'
+import { progressService } from '@/lib/services/progress/progress-service'
+import { ArrowLeft } from 'lucide-react'
+import { cookies } from 'next/headers'
+import Link from 'next/link'
 
-const FLAWLESS_THRESHOLD = 10;
+const FLAWLESS_THRESHOLD = 10
 
 export default async function MarathiAlphabet() {
-  const token = cookies().get('auth-token');
-  const userId = await getUserId(token?.value);
-  const progress = await progressService.getFullUserProgress(userId);
+  const token = cookies().get('auth-token')
+  const userId = await getUserId(token?.value)
+  const progress = await progressService.getResolvedUserProgress(userId)
 
   const getLetterProgress = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode)
 
-    if (!challenge) return 0;
+    if (!challenge) return 0
     return challenge.flawless >= FLAWLESS_THRESHOLD
       ? 100
-      : (challenge.flawless / FLAWLESS_THRESHOLD) * 100;
-  };
+      : (challenge.flawless / FLAWLESS_THRESHOLD) * 100
+  }
 
   const isLetterMastered = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
-    return (challenge?.flawless || 0) >= FLAWLESS_THRESHOLD || false;
-  };
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode)
+    return (challenge?.flawless || 0) >= FLAWLESS_THRESHOLD || false
+  }
 
-  const vowels = marathiAlphabet.filter(letter => letter.type === 'vowel');
-  const consonants = marathiAlphabet.filter(letter => letter.type === 'consonant');
+  const vowels = marathiAlphabet.filter(letter => letter.type === 'vowel')
+  const consonants = marathiAlphabet.filter(letter => letter.type === 'consonant')
 
   const getLastAttempted = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode);
-    return challenge?.lastActivity;
-  };
+    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode)
+    return challenge?.lastActivity
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -137,5 +137,5 @@ export default async function MarathiAlphabet() {
         </section>
       </div>
     </div>
-  );
+  )
 }
