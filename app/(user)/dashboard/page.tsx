@@ -78,11 +78,9 @@ export default async function Dashboard() {
                   <h3 className="text-lg font-semibold">{module.module.name}</h3>
                   <p className="text-sm text-muted-foreground">{module.module.description}</p>
                 </div>
-                <Link href={`/learning?mode=${module.module.id}`}>
-                  <Button variant="outline" size="sm">
-                    Practice
-                  </Button>
-                </Link>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/learning?mode=${module.module.id}`}>Practice</Link>
+                </Button>
               </div>
               <Progress value={(module.mastered / module.total) * 100} />
               <div className="mt-2 text-sm text-muted-foreground">
@@ -104,11 +102,9 @@ export default async function Dashboard() {
                 <h3 className="text-lg font-semibold">Marathi Alphabet</h3>
                 <p className="text-sm text-muted-foreground">View all letters and your progress</p>
               </div>
-              <Link href="/dashboard/marathi">
-                <Button variant="outline" size="sm">
-                  View All
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard/marathi">View All</Link>
+              </Button>
             </div>
           </Card>
           <Card className="p-6 col-span-3 md:col-span-2">
