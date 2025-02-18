@@ -13,17 +13,15 @@ export default function Home() {
             Master the Marathi alphabet through interactive exercises and track your progress with
             our innovative learning platform.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/get-started">
-              <Button size="lg" className="gap-2">
+          <div className="flex gap-4 justify-center items-center">
+            <Button size="lg" className="h-10" asChild>
+              <Link href="/get-started">
                 Get Started <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline">
-                Sign In
-              </Button>
-            </Link>
+              </Link>
+            </Button>
+            <Button size="lg" className="h-11" variant="outline" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -79,9 +77,9 @@ export default function Home() {
                 Community support
               </li>
             </ul>
-            <Link href="/get-started">
-              <Button className="w-full">Start Learning Now</Button>
-            </Link>
+            <Button size="lg" className="w-full" asChild>
+              <Link href="/get-started">Start Learning Now</Link>
+            </Button>
           </div>
         </div>
       </section>
