@@ -1,33 +1,33 @@
-'use client';
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useAuth } from '@/lib/context/auth/auth-context';
-import { ArrowLeft } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import Link from 'next/link';
+} from '@/components/ui/select'
+import { useAuth } from '@/lib/context/auth/auth-context'
+import { ArrowLeft } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import Link from 'next/link'
 
 export default function Settings() {
-  const { theme, setTheme } = useTheme();
-  const { userId } = useAuth();
+  const { theme, setTheme } = useTheme()
+  const { userId } = useAuth()
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/dashboard">
               <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>
 
@@ -64,5 +64,5 @@ export default function Settings() {
         </Card>
       </div>
     </div>
-  );
+  )
 }
