@@ -4,9 +4,11 @@ import { CommonMistakes } from '@/components/ui/common-mistakes'
 import { Progress } from '@/components/ui/progress'
 import { getUserId } from '@/lib/services/auth/actions'
 import { progressService } from '@/lib/services/progress/progress-service'
-import { BookOpen, Settings, Star, Target, Trophy } from 'lucide-react'
+import { BookOpen, Settings, Trophy } from 'lucide-react'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import { AccuracyCard } from './_components/accuracy-card'
+import { DailyStreakCard } from './_components/daily-streak-card'
 import { LevelCard } from './_components/level-card'
 
 export default async function Dashboard() {
@@ -34,26 +36,8 @@ export default async function Dashboard() {
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <Star className="w-8 h-8 text-yellow-500" />
-              <div>
-                <h3 className="text-lg font-semibold">Daily Streak</h3>
-                <p className="text-2xl font-bold">{progress.streak} days</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <Target className="w-8 h-8 text-primary" />
-              <div>
-                <h3 className="text-lg font-semibold">Accuracy</h3>
-                <p className="text-2xl font-bold">{progress.accuracy}%</p>
-              </div>
-            </div>
-          </Card>
-
+          <DailyStreakCard streak={progress.streak} className="p-6" />
+          <AccuracyCard accuracy={progress.accuracy} className="p-6" />
           <LevelCard masteryLevel={progress.masteryLevel} className="p-6" />
         </div>
 
