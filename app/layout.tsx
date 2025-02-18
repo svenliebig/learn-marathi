@@ -24,7 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           disableTransitionOnChange
         >
           {children}
-          <div className="pb-10" />
           <div className="absolute bottom-4 left-4 z-10">
             <Link
               href="https://github.com/svenliebig/learn-marathi"
