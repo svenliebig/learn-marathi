@@ -37,7 +37,7 @@ export class ExerciseService {
    * @param challenges Should already be module filtered.
    * @returns
    */
-  public getExerciseLetters(
+  private getExerciseLetters(
     challenges: Array<Omit<Challenge, 'module' | 'mistakes' | 'id' | 'attempts'>>,
     mode: ExerciseMode
   ): Letter[] {

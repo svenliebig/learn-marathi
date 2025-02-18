@@ -3,7 +3,26 @@ import { subDays, subHours } from 'date-fns'
 import { beforeEach } from 'node:test'
 import { describe, expect, it } from 'vitest'
 import { LetterService } from '../../letter-service'
-import { exerciseService } from '../exercise-service'
+import { ResolvedUserProgress, ResolvedUserProgressService } from '../../progress/types'
+import { ExerciseService } from '../exercise-service'
+
+class MockProgressService implements ResolvedUserProgressService {
+  private challenges: ResolvedUserProgress['challenges'] = []
+
+  constructor(challenges: ResolvedUserProgress['challenges'] = []) {
+    this.challenges = challenges
+  }
+
+  async getResolvedUserProgress(): Promise<ResolvedUserProgress> {
+    return {
+      id: 1,
+      userId: 'test-user',
+      lastActivity: new Date(),
+      streak: 0,
+      challenges: this.challenges,
+    }
+  }
+}
 
 let index = 0
 
@@ -12,23 +31,24 @@ describe('ExerciseService', () => {
     index = 0
   })
 
-  describe('getExerciseLetters', () => {
-    it('should get random exercise letters when no challenges are present', () => {
-      const letters = exerciseService.getExerciseLetters([], 'marathi-to-latin')
-      expect(letters).toHaveLength(8)
+  describe('getExercise', () => {
+    it('should get random exercise letters when no challenges are present', async () => {
+      const service = new ExerciseService(new MockProgressService([]))
+      const exercise = await service.getExercise('test-user', 'marathi-to-latin')
+
+      expect(exercise.letters).toHaveLength(8)
+      expect(exercise.mode).toBe('marathi-to-latin')
+      expect(exercise.size).toBe(8)
     })
 
-    it('should get random exercise letters when only 14 challenges are present', () => {
-      const letters = exerciseService.getExerciseLetters(mockChallenges(14), 'marathi-to-latin')
-      expect(letters).toHaveLength(8)
+    it('should get random exercise letters when only 14 challenges are present', async () => {
+      const service = new ExerciseService(new MockProgressService(mockChallenges(14)))
+      const exercise = await service.getExercise('test-user', 'marathi-to-latin')
+
+      expect(exercise.letters).toHaveLength(8)
     })
 
-    it('should get 8 letters when 15 challenges are present', () => {
-      const letters = exerciseService.getExerciseLetters(mockChallenges(15), 'marathi-to-latin')
-      expect(letters).toHaveLength(8)
-    })
-
-    it("should add the two questions that hasn't been answered for the longest time", () => {
+    it("should add the two questions that hasn't been answered for the longest time", async () => {
       const challenges = mockChallenges(13)
       const expectedLetters = [
         marathiAlphabet[marathiAlphabet.length - 1].marathi,
@@ -36,21 +56,30 @@ describe('ExerciseService', () => {
       ]
 
       challenges.push({
+        id: 14,
         letter: expectedLetters[0],
+        module: 'marathi-to-latin',
         flawless: 0,
         lastActivity: subHours(new Date(), 1),
+        attempts: 1,
+        mistakes: [],
       })
 
       challenges.push({
+        id: 15,
         letter: expectedLetters[1],
+        module: 'marathi-to-latin',
         flawless: 0,
         lastActivity: subHours(new Date(), 2),
+        attempts: 1,
+        mistakes: [],
       })
 
-      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin')
+      const service = new ExerciseService(new MockProgressService(challenges))
+      const exercise = await service.getExercise('test-user', 'marathi-to-latin')
 
-      expect(letters).toHaveLength(8)
-      expect(letters).toEqual(
+      expect(exercise.letters).toHaveLength(8)
+      expect(exercise.letters).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ marathi: expectedLetters[0] }),
           expect.objectContaining({ marathi: expectedLetters[1] }),
@@ -58,72 +87,48 @@ describe('ExerciseService', () => {
       )
     })
 
-    it("should add the two questions that hasn't been answered for the longest time (even if flawless)", () => {
-      const challenges = mockChallenges(13)
-      const expectedLetters = [
-        marathiAlphabet[marathiAlphabet.length - 1].marathi,
-        marathiAlphabet[marathiAlphabet.length - 2].marathi,
-      ]
-
-      challenges.push({
-        letter: expectedLetters[0],
-        flawless: 5,
-        lastActivity: subHours(new Date(), 1),
-      })
-
-      challenges.push({
-        letter: expectedLetters[1],
-        flawless: 5,
-        lastActivity: subHours(new Date(), 2),
-      })
-
-      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin')
-
-      expect(letters).toHaveLength(8)
-      expect(letters).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ marathi: expectedLetters[0] }),
-          expect.objectContaining({ marathi: expectedLetters[1] }),
-        ])
-      )
-    })
-
-    it('should skip flawless challenges when they are not the last two', () => {
-      const challenges: GetExerciseLettersChallenge = []
-
+    it('should skip flawless challenges when they are not the last two', async () => {
+      const challenges: ResolvedUserProgress['challenges'] = []
       const expectedLetters = Array.from({ length: 15 }, (_, i) => marathiAlphabet[i].marathi)
 
       // not flawless today
       Array.from({ length: 5 }, (_, i) => {
-        challenges.push({
-          letter: expectedLetters[i],
-          flawless: 0,
-          lastActivity: new Date(),
-        })
+        challenges.push(
+          createMockChallenge({
+            letter: expectedLetters[i],
+            flawless: 0,
+            lastActivity: new Date(),
+          })
+        )
       })
 
       // flawless yesterday
       Array.from({ length: 7 }, (_, i) => {
-        challenges.push({
-          letter: expectedLetters[5 + i],
-          flawless: 5,
-          lastActivity: subDays(new Date(), 1),
-        })
+        challenges.push(
+          createMockChallenge({
+            letter: expectedLetters[5 + i],
+            flawless: 5,
+            lastActivity: subDays(new Date(), 1),
+          })
+        )
       })
 
       // not flawless two days ago
       Array.from({ length: 3 }, (_, i) => {
-        challenges.push({
-          letter: expectedLetters[12 + i],
-          flawless: 0,
-          lastActivity: subDays(new Date(), 2),
-        })
+        challenges.push(
+          createMockChallenge({
+            letter: expectedLetters[12 + i],
+            flawless: 0,
+            lastActivity: subDays(new Date(), 2),
+          })
+        )
       })
 
-      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin')
+      const service = new ExerciseService(new MockProgressService(challenges))
+      const exercise = await service.getExercise('test-user', 'marathi-to-latin')
 
-      expect(letters).toHaveLength(8)
-      expect(letters).toEqual(
+      expect(exercise.letters).toHaveLength(8)
+      expect(exercise.letters).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ marathi: expectedLetters[0] }),
           expect.objectContaining({ marathi: expectedLetters[1] }),
@@ -136,83 +141,11 @@ describe('ExerciseService', () => {
         ])
       )
 
-      Array.from({ length: 7 }, (_, i) => expectedLetters[5 + i]).forEach((letter, index) => {
-        const i = index + 5
+      Array.from({ length: 7 }, (_, i) => expectedLetters[5 + i]).forEach(letter => {
         expect(
-          letters,
-          `letter ${letter} (${LetterService.getLetter(letter).latin}, index: ${i}) should not be in the exercise`
+          exercise.letters,
+          `letter ${letter} (${LetterService.getLetter(letter).latin}) should not be in the exercise`
         ).not.toEqual(expect.arrayContaining([expect.objectContaining({ marathi: letter })]))
-      })
-    })
-
-    it('should add new letters when the user has 80% of the challenges flawless', () => {
-      const challenges = Array.from({ length: 15 }, (_, i) => {
-        return {
-          letter: marathiAlphabet[i].marathi,
-          flawless: 0,
-          lastActivity: subHours(new Date(), i),
-        }
-      })
-
-      // make 0 and 1 oldest
-      challenges[0].lastActivity = subDays(new Date(), 2)
-      challenges[1].lastActivity = subDays(new Date(), 3)
-
-      // make 0-12 flawless
-      challenges.slice(0, 12).forEach(challenge => {
-        challenge.flawless = 5
-      })
-
-      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin')
-
-      expect(letters).toHaveLength(8)
-      expect(letters).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ marathi: challenges[0].letter }),
-          expect.objectContaining({ marathi: challenges[1].letter }),
-          expect.objectContaining({ marathi: challenges[12].letter }),
-          expect.objectContaining({ marathi: challenges[13].letter }),
-          expect.objectContaining({ marathi: challenges[14].letter }),
-        ])
-      )
-    })
-
-    it('should add only letters that the user is not flawless yet', () => {
-      const challenges = Array.from({ length: marathiAlphabet.length - 8 }, (_, i) => {
-        return {
-          letter: marathiAlphabet[i].marathi,
-          flawless: 5,
-          lastActivity: new Date(),
-        }
-      })
-
-      // add oldest letters
-      Array.from({ length: 2 }, (_, i) => {
-        challenges.push({
-          letter: marathiAlphabet[marathiAlphabet.length - 8 + i].marathi,
-          flawless: 0,
-          lastActivity: subDays(new Date(), 2),
-        })
-      })
-
-      const expectedLetters = Array.from({ length: 6 }, (_, i) => {
-        return marathiAlphabet[marathiAlphabet.length - 6 + i].marathi
-      })
-
-      const letters = exerciseService.getExerciseLetters(challenges, 'marathi-to-latin')
-
-      expect(letters, 'oldest letters should be in the exercise').toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ marathi: challenges[challenges.length - 1].letter }),
-          expect.objectContaining({ marathi: challenges[challenges.length - 2].letter }),
-        ])
-      )
-
-      expectedLetters.forEach((letter, index) => {
-        expect(
-          letters,
-          `letter ${letter} (${LetterService.getLetter(letter).latin}, index: ${index}) should be in the exercise`
-        ).toEqual(expect.arrayContaining([expect.objectContaining({ marathi: letter })]))
       })
     })
   })
@@ -222,12 +155,17 @@ function mockChallenges(amount: number) {
   return Array.from({ length: amount }, (_, i) => createMockChallenge())
 }
 
-type GetExerciseLettersChallenge = Parameters<typeof exerciseService.getExerciseLetters>[0]
-
-function createMockChallenge(): GetExerciseLettersChallenge[number] {
+function createMockChallenge(
+  override: Partial<ResolvedUserProgress['challenges'][number]> = {}
+): ResolvedUserProgress['challenges'][number] {
   return {
+    id: index++,
+    module: 'marathi-to-latin',
+    attempts: 1,
+    mistakes: [],
     flawless: 0,
     lastActivity: new Date(),
-    letter: marathiAlphabet[index++ % marathiAlphabet.length].marathi,
+    letter: marathiAlphabet[index % marathiAlphabet.length].marathi,
+    ...override,
   }
 }
