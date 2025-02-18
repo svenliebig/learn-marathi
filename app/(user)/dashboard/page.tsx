@@ -1,21 +1,22 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { CommonMistakes } from '@/components/ui/common-mistakes';
-import { Progress } from '@/components/ui/progress';
-import { getUserId } from '@/lib/services/auth/actions';
-import { progressService } from '@/lib/services/progress/progress-service';
-import { BookOpen, Clock, Settings, Star, Target, Trophy } from 'lucide-react';
-import { cookies } from 'next/headers';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { CommonMistakes } from '@/components/ui/common-mistakes'
+import { Progress } from '@/components/ui/progress'
+import { getUserId } from '@/lib/services/auth/actions'
+import { progressService } from '@/lib/services/progress/progress-service'
+import { BookOpen, Settings, Star, Target, Trophy } from 'lucide-react'
+import { cookies } from 'next/headers'
+import Link from 'next/link'
+import { LevelCard } from './_components/level-card'
 
 export default async function Dashboard() {
-  const token = cookies().get('auth-token');
-  const userId = await getUserId(token?.value);
-  const progress = await progressService.getDashboardProgress(userId);
-  const fullProgress = await progressService.getFullUserProgress(userId);
+  const token = cookies().get('auth-token')
+  const userId = await getUserId(token?.value)
+  const progress = await progressService.getDashboardProgress(userId)
+  const fullProgress = await progressService.getFullUserProgress(userId)
 
   if (!progress || !fullProgress) {
-    return <div>No progress found.</div>;
+    return <div>No progress found.</div>
   }
 
   return (
@@ -23,12 +24,12 @@ export default async function Dashboard() {
       <div className="flex flex-col max-w-4xl mx-auto gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Your Learning Dashboard</h1>
-          <Link href="/settings">
-            <Button variant="ghost" size="icon" className="hover:bg-accent">
+          <Button variant="ghost" size="icon" className="hover:bg-accent" asChild>
+            <Link href="/settings">
               <Settings className="w-5 h-5 text-muted-foreground" />
               <span className="sr-only">Settings</span>
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
         {/* Stats Overview */}
@@ -53,15 +54,7 @@ export default async function Dashboard() {
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <Clock className="w-8 h-8 text-primary" />
-              <div>
-                <h3 className="text-lg font-semibold">Mastery Level</h3>
-                <p className="text-2xl font-bold">{progress.masteryLevel}</p>
-              </div>
-            </div>
-          </Card>
+          <LevelCard masteryLevel={progress.masteryLevel} className="p-6" />
         </div>
 
         <div className="grid gap-6">
@@ -129,11 +122,9 @@ export default async function Dashboard() {
                       {module.mastered} of {module.total} letters mastered
                     </p>
                   </div>
-                  <Link href={`/learning?mode=${module.module.id}`}>
-                    <Button variant="ghost" size="sm">
-                      Continue
-                    </Button>
-                  </Link>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/learning?mode=${module.module.id}`}>Continue</Link>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -141,5 +132,5 @@ export default async function Dashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }
