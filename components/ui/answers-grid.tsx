@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface AnswersGridProps {
-  answers: string[];
-  onAnswer: (answer: string) => void;
-  selectedAnswer: string | null;
-  correctAnswer: string;
-  isAnimating: boolean;
+  answers: string[]
+  onAnswer: (answer: string) => void
+  selectedAnswer: string | null
+  correctAnswer: string
+  isAnimating: boolean
 }
 
 export function AnswersGrid({
@@ -21,9 +21,9 @@ export function AnswersGrid({
 }: AnswersGridProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      {answers.map((answer, index) => {
-        const isSelected = selectedAnswer === answer;
-        const isCorrect = answer === correctAnswer;
+      {answers.map(answer => {
+        const isSelected = selectedAnswer === answer
+        const isCorrect = answer === correctAnswer
 
         return (
           <motion.div
@@ -39,17 +39,17 @@ export function AnswersGrid({
               disabled={isAnimating}
               variant="outline"
               className={cn('w-full h-12 text-lg', {
-                'bg-green-500/10 border-green-500 text-green-600':
-                  isAnimating && isCorrect,
+                'bg-green-500/10 border-green-500 text-green-600': isAnimating && isCorrect,
                 'bg-red-500/10 border-red-500 text-red-600':
                   isAnimating && !isCorrect && isSelected,
               })}
+              suppressHydrationWarning={true}
             >
               {answer}
             </Button>
           </motion.div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

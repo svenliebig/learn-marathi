@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoadingButton } from '@/components/ui/loading-button'
+import { useDashboardRedirect } from '@/hooks/use-dashboard-redirect'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -14,6 +15,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const isDashboardRedirectLoading = useDashboardRedirect()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,6 +42,10 @@ export default function Login() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isDashboardRedirectLoading) {
+    return null
   }
 
   return (

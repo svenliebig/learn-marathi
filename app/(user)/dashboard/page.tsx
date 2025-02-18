@@ -5,15 +5,14 @@ import { Progress } from '@/components/ui/progress'
 import { getUserId } from '@/lib/services/auth/actions'
 import { progressService } from '@/lib/services/progress/progress-service'
 import { BookOpen, Settings, Trophy } from 'lucide-react'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { AccuracyCard } from './_components/accuracy-card'
 import { DailyStreakCard } from './_components/daily-streak-card'
 import { LevelCard } from './_components/level-card'
 
 export default async function Dashboard() {
-  const token = cookies().get('auth-token')
-  const userId = await getUserId(token?.value)
+  const userId = await getUserId()
+
   const progress = await progressService.getDashboardProgress(userId)
   const fullProgress = await progressService.getResolvedUserProgress(userId)
 

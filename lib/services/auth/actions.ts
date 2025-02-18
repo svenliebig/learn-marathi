@@ -1,21 +1,29 @@
-'use server';
+'use server'
 
-import { authService } from '../auth-service';
+import { cookies } from 'next/headers'
+import { authService } from '../auth-service'
 
-export async function login(formData: FormData) {
-  const email = formData.get('email');
-  const password = formData.get('password');
-}
+export async function getUserId(): Promise<string> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')
 
-export async function getUserId(token?: string): Promise<string> {
-  if (!token) throw new Error('No token found');
+  if (!token) throw new Error('No token found')
 
   try {
-    const payload = await authService.verifyToken(token);
-    if (!payload) throw new Error('Invalid token');
-    return payload.userId;
+    const payload = await authService.verifyToken(token.value)
+    if (!payload) throw new Error('Invalid token')
+    return payload.userId
   } catch (error) {
-    console.error('Failed to get user id:', error);
-    throw error;
+    console.error('Failed to get user id:', error)
+    throw error
+  }
+}
+
+export async function isLoggedIn(): Promise<boolean> {
+  try {
+    await getUserId()
+    return true
+  } catch (error) {
+    return false
   }
 }

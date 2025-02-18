@@ -1,19 +1,15 @@
-'use client';
+'use client'
 
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface LetterCardProps {
-  letter: string;
-  instruction: string;
-  className?: string;
+  letter: string
+  instruction: string
+  className?: string
 }
 
-export function LetterCard({
-  letter,
-  instruction,
-  className,
-}: LetterCardProps) {
+export function LetterCard({ letter, instruction, className }: LetterCardProps) {
   return (
     <Card
       className={cn(
@@ -24,8 +20,10 @@ export function LetterCard({
         transformStyle: 'preserve-3d',
       }}
     >
-      <h2 className="text-6xl mb-4 font-bold">{letter}</h2>
+      <h2 className="text-6xl mb-4 font-bold" suppressHydrationWarning={true}>
+        {letter}
+      </h2>
       <p className="text-sm text-muted-foreground">{instruction}</p>
     </Card>
-  );
+  )
 }

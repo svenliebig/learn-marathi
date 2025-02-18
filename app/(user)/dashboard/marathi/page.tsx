@@ -5,16 +5,15 @@ import { CopyButton } from '@/components/ui/copy-button'
 import { Progress } from '@/components/ui/progress'
 import { marathiAlphabet } from '@/lib/marathi-data'
 import { getUserId } from '@/lib/services/auth/actions'
+import { ExerciseService } from '@/lib/services/exercise/exercise-service'
 import { progressService } from '@/lib/services/progress/progress-service'
 import { ArrowLeft } from 'lucide-react'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 
-const FLAWLESS_THRESHOLD = 10
+const FLAWLESS_THRESHOLD = ExerciseService.SOFT_FLAWLESS_THRESHOLD * 2
 
 export default async function MarathiAlphabet() {
-  const token = cookies().get('auth-token')
-  const userId = await getUserId(token?.value)
+  const userId = await getUserId()
   const progress = await progressService.getResolvedUserProgress(userId)
 
   const getLetterProgress = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
@@ -33,11 +32,6 @@ export default async function MarathiAlphabet() {
 
   const vowels = marathiAlphabet.filter(letter => letter.type === 'vowel')
   const consonants = marathiAlphabet.filter(letter => letter.type === 'consonant')
-
-  const getLastAttempted = (letter: string, mode: 'marathi-to-latin' | 'latin-to-marathi') => {
-    const challenge = progress.challenges.find(c => c.letter === letter && c.module === mode)
-    return challenge?.lastActivity
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
