@@ -1,32 +1,32 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'
 
-import { AnswerService } from '@/lib/services/answer-service';
-import { audioService } from '@/lib/services/audio-service';
-import { createExercise } from '@/lib/services/exercise/actions';
-import { Exercise as ExerciseType } from '@/lib/services/exercise/types';
-import { Letter } from '@/lib/services/letter-service';
-import { updateChallengeByUserId } from '@/lib/services/progress/actions';
-import { ExerciseState } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
-import { AnswersGrid } from './ui/answers-grid';
-import { ExerciseComplete } from './ui/exercise-complete';
-import { LetterCard } from './ui/letter-card';
-import { LetterCardSuccessCover } from './ui/letter-card-success-cover';
-import { Progress } from './ui/progress';
+import { AnswerService } from '@/lib/services/answer-service'
+import { audioService } from '@/lib/services/audio-service'
+import { createExercise } from '@/lib/services/exercise/actions'
+import { Exercise as ExerciseType } from '@/lib/services/exercise/types'
+import { Letter } from '@/lib/services/letter-service'
+import { updateChallengeByUserId } from '@/lib/services/progress/actions'
+import { ExerciseState } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import { useMemo, useRef, useState } from 'react'
+import { AnswersGrid } from './ui/answers-grid'
+import { ExerciseComplete } from './ui/exercise-complete'
+import { LetterCard } from './ui/letter-card'
+import { LetterCardSuccessCover } from './ui/letter-card-success-cover'
+import { Progress } from './ui/progress'
 
 export default function Exercise({
   userId,
   exercise: createdExercise,
 }: {
-  userId: string;
-  exercise: ExerciseType;
+  userId: string
+  exercise: ExerciseType
 }) {
-  const router = useRouter();
+  const router = useRouter()
 
   const [exercise, setExercise] = useState<ExerciseState>(
     useMemo(
@@ -38,7 +38,7 @@ export default function Exercise({
           return {
             ...l,
             audio: audioService.getLetterAudio(l.marathi)!,
-          };
+          }
         }),
         answers: [],
         correctAnswer: '',
@@ -48,69 +48,74 @@ export default function Exercise({
       }),
       []
     )
-  );
+  )
 
-  const [showStats, setShowStats] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showStats, setShowStats] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
 
-  const answerService = useRef<AnswerService>(new AnswerService(exercise.mode, 1));
+  const answerService = useRef<AnswerService>(
+    new AnswerService(
+      exercise.mode,
+      exercise.letters.reduce((acc, letter) => Math.max(acc, letter.difficulty), 0)
+    )
+  )
 
   const handleAnswer = async (answer: string) => {
-    if (isAnimating) return;
+    if (isAnimating) return
 
-    const currentLetter = exercise.letters[exercise.currentIndex];
+    const currentLetter = exercise.letters[exercise.currentIndex]
     const correctAnswer =
-      exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi;
-    const isCorrect = answer === correctAnswer;
+      exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi
+    const isCorrect = answer === correctAnswer
 
-    setIsAnimating(true);
-    setSelectedAnswer(answer);
+    setIsAnimating(true)
+    setSelectedAnswer(answer)
 
-    await (currentLetter as any).audio.play();
+    await (currentLetter as any).audio.play()
 
     // Update progress via API
     const letterKey =
-      exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin;
+      exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin
 
-    await updateChallengeByUserId(userId, letterKey, answer, exercise.mode);
+    await updateChallengeByUserId(userId, letterKey, answer, exercise.mode)
 
     setExercise(prev => ({
       ...prev,
       score: isCorrect ? prev.score + 1 : prev.score,
       mistakes: isCorrect ? prev.mistakes : prev.mistakes + 1,
       history: [...prev.history, { letter: letterKey, correct: isCorrect }],
-    }));
+    }))
 
     // Wait for animation
     setTimeout(() => {
-      setIsAnimating(false);
+      setIsAnimating(false)
       if (exercise.currentIndex + 1 >= exercise.size) {
-        setShowStats(true);
+        setShowStats(true)
       } else {
         setExercise(prev => ({
           ...prev,
           currentIndex: prev.currentIndex + 1,
-        }));
+        }))
       }
-    }, 1000);
-  };
+    }, 1000)
+  }
 
-  const currentLetter = exercise.letters[exercise.currentIndex];
+  const currentLetter = exercise.letters[exercise.currentIndex]
   const answers = useMemo(
     () =>
       answerService.current.generateAnswers(
         exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi
       ),
     [currentLetter.latin, currentLetter.marathi, exercise.mode]
-  );
+  )
 
   if (showStats) {
     return (
       <ExerciseComplete
         exercise={exercise}
         onTryAgain={async () => {
-          const newExercise = await createExercise(userId, exercise.mode);
+          const newExercise = await createExercise(userId, exercise.mode)
 
           setExercise(prev => ({
             ...prev,
@@ -122,21 +127,21 @@ export default function Exercise({
             })),
             mistakes: 0,
             history: [],
-          }));
-          setShowStats(false);
+          }))
+          setShowStats(false)
         }}
         onExit={() => router.push('/dashboard')}
       />
-    );
+    )
   }
 
   const displayLetter =
-    exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin;
+    exercise.mode === 'marathi-to-latin' ? currentLetter.marathi : currentLetter.latin
 
   const correctAnswer =
-    exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi;
+    exercise.mode === 'marathi-to-latin' ? currentLetter.latin : currentLetter.marathi
 
-  const isCorrect = correctAnswer === selectedAnswer;
+  const isCorrect = correctAnswer === selectedAnswer
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -190,5 +195,5 @@ export default function Exercise({
         </div>
       </div>
     </div>
-  );
+  )
 }
